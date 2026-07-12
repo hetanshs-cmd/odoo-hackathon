@@ -26,7 +26,10 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction): vo
 
     next();
   } catch (error: unknown) {
-    console.error('[requireAuth] JWT verify error:', error instanceof Error ? error.message : String(error));
+    console.error(
+      '[requireAuth] JWT verify error:',
+      error instanceof Error ? error.message : String(error),
+    );
     if (error instanceof jwt.TokenExpiredError) {
       return next(new AppError('NOT_AUTHENTICATED', 401, 'Authentication token expired'));
     }

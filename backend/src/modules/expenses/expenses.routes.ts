@@ -10,21 +10,21 @@ expensesRouter.use(requireAuth);
 // GET /api/expenses
 expensesRouter.get(
   '/',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   expensesController.getAll,
 );
 
 // GET /api/expenses/summary
 expensesRouter.get(
   '/summary',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   expensesController.getSummary,
 );
 
 // GET /api/expenses/:id
 expensesRouter.get(
   '/:id',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   expensesController.getById,
 );
 

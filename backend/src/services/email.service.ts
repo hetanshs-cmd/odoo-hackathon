@@ -14,8 +14,8 @@ export class EmailService {
         pass: env.SMTP_PASS,
       },
       tls: {
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     });
   }
 
