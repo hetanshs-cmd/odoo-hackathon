@@ -1,232 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model drivers {
+  id                  Int      @id @default(autoincrement())
+  name                String   @db.VarChar(100)
+  license_number      String   @unique @db.VarChar(50)
+  license_category    String?  @db.VarChar(20)
+  license_expiry_date DateTime @db.Date
+  contact_number      String   @db.VarChar(20)
+  safety_score        Decimal  @default(100.0) @db.Decimal(4, 1)
+  status              String   @default("Available") @db.VarChar(20)
+  region_id           Int?
+  created_at          DateTime @default(now()) @db.Timestamp(6)
+  updated_at          DateTime @default(now()) @db.Timestamp(6)
+  regions             regions? @relation(fields: [region_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  trips               trips[]
+
+  @@index([license_expiry_date], map: "idx_drivers_license_expiry")
+  @@index([region_id], map: "idx_drivers_region_id")
+  @@index([status], map: "idx_drivers_status")
 }
 
-enum VehicleStatus {
-  AVAILABLE
-  ON_TRIP
-  IN_SHOP
-  RETIRED
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model expenses {
+  id           Int      @id @default(autoincrement())
+  vehicle_id   Int
+  type         String   @db.VarChar(20)
+  amount       Decimal  @db.Decimal(10, 2)
+  expense_date DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  notes        String?  @db.VarChar(255)
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  vehicles     vehicles @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([vehicle_id], map: "idx_expenses_vehicle_id")
 }
 
-enum DriverStatus {
-  AVAILABLE
-  ON_TRIP
-  OFF_DUTY
-  SUSPENDED
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model fuel_logs {
+  id         Int      @id @default(autoincrement())
+  vehicle_id Int
+  trip_id    Int?
+  liters     Decimal  @db.Decimal(10, 2)
+  cost       Decimal  @db.Decimal(10, 2)
+  log_date   DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  trips      trips?   @relation(fields: [trip_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vehicles   vehicles @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([trip_id], map: "idx_fuel_trip_id")
+  @@index([vehicle_id], map: "idx_fuel_vehicle_id")
 }
 
-enum TripStatus {
-  DRAFT
-  DISPATCHED
-  COMPLETED
-  CANCELLED
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model maintenance_logs {
+  id          Int       @id @default(autoincrement())
+  vehicle_id  Int
+  description String    @db.VarChar(255)
+  cost        Decimal   @default(0) @db.Decimal(10, 2)
+  status      String    @default("Active") @db.VarChar(20)
+  started_at  DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  closed_at   DateTime? @db.Date
+  created_at  DateTime  @default(now()) @db.Timestamp(6)
+  vehicles    vehicles  @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status], map: "idx_maintenance_status")
+  @@index([vehicle_id], map: "idx_maintenance_vehicle_id")
 }
 
-enum MaintenanceStatus {
-  ACTIVE
-  COMPLETED
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model otp_verifications {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  otp_hash   String   @db.VarChar(255)
+  expires_at DateTime @db.Timestamp(6)
+  attempts   Int      @default(0)
+  is_used    Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  purpose    String   @default("LOGIN") @db.VarChar(20)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "idx_otp_expires_at")
+  @@index([user_id], map: "idx_otp_user_id")
 }
 
-model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String   @db.VarChar(100)
-  email        String   @unique @db.VarChar(150)
-  passwordHash String   @db.VarChar(255)
-  roleId       String   @db.Uuid
-  role         Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  createdAt    DateTime @default(now()) @db.Timestamp
-  updatedAt    DateTime @updatedAt @db.Timestamp
-
-  driverProfile Driver?
-  tripsCreated  Trip[]     @relation("TripDispatcher")
-  auditLogs     AuditLog[]
-
-  @@index([email])
-  @@index([roleId])
+model regions {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique @db.VarChar(50)
+  center_lat Decimal?   @db.Decimal(9, 6)
+  center_lng Decimal?   @db.Decimal(9, 6)
+  created_at DateTime   @default(now()) @db.Timestamp(6)
+  drivers    drivers[]
+  trips      trips[]
+  vehicles   vehicles[]
 }
 
-model Role {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String   @unique @db.VarChar(50)
-  description String?  @db.VarChar(255)
-  createdAt   DateTime @default(now()) @db.Timestamp
-  updatedAt   DateTime @updatedAt @db.Timestamp
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model trips {
+  id               Int         @id @default(autoincrement())
+  source           String      @db.VarChar(150)
+  destination      String      @db.VarChar(150)
+  source_lat       Decimal?    @db.Decimal(9, 6)
+  source_lng       Decimal?    @db.Decimal(9, 6)
+  dest_lat         Decimal?    @db.Decimal(9, 6)
+  dest_lng         Decimal?    @db.Decimal(9, 6)
+  region_id        Int?
+  vehicle_id       Int
+  driver_id        Int
+  cargo_weight     Decimal     @db.Decimal(10, 2)
+  planned_distance Decimal     @db.Decimal(10, 2)
+  actual_distance  Decimal?    @db.Decimal(10, 2)
+  fuel_consumed    Decimal?    @db.Decimal(10, 2)
+  revenue          Decimal?    @db.Decimal(12, 2)
+  status           String      @default("Draft") @db.VarChar(20)
+  dispatched_at    DateTime?   @db.Timestamp(6)
+  completed_at     DateTime?   @db.Timestamp(6)
+  created_by       Int?
+  created_at       DateTime    @default(now()) @db.Timestamp(6)
+  updated_at       DateTime    @default(now()) @db.Timestamp(6)
+  fuel_logs        fuel_logs[]
+  users            users?      @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  drivers          drivers     @relation(fields: [driver_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  regions          regions?    @relation(fields: [region_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vehicles         vehicles    @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  users       User[]
-  permissions RolePermission[]
+  @@index([driver_id], map: "idx_trips_driver_id")
+  @@index([region_id], map: "idx_trips_region_id")
+  @@index([status], map: "idx_trips_status")
+  @@index([vehicle_id], map: "idx_trips_vehicle_id")
 }
 
-model Permission {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String   @unique @db.VarChar(100)
-  description String?  @db.VarChar(255)
-  createdAt   DateTime @default(now()) @db.Timestamp
-  updatedAt   DateTime @updatedAt @db.Timestamp
+model users {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(100)
+  email             String              @unique @db.VarChar(150)
+  password_hash     String              @db.VarChar(255)
+  role              String              @default("FleetManager") @db.VarChar(50)
+  is_active         Boolean             @default(true)
+  created_at        DateTime            @default(now()) @db.Timestamp(6)
+  updated_at        DateTime            @default(now()) @db.Timestamp(6)
+  email_verified    Boolean             @default(false)
+  otp_verifications otp_verifications[]
+  trips             trips[]
 
-  roles RolePermission[]
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
 }
 
-model RolePermission {
-  roleId       String     @db.Uuid
-  permissionId String     @db.Uuid
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now()) @db.Timestamp
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model vehicles {
+  id                  Int                @id @default(autoincrement())
+  registration_number String             @unique @db.VarChar(20)
+  name_model          String             @db.VarChar(100)
+  type                String?            @db.VarChar(50)
+  max_load_capacity   Decimal            @db.Decimal(10, 2)
+  odometer            Decimal            @default(0) @db.Decimal(10, 2)
+  acquisition_cost    Decimal            @db.Decimal(12, 2)
+  status              String             @default("Available") @db.VarChar(20)
+  region_id           Int?
+  current_lat         Decimal?           @db.Decimal(9, 6)
+  current_lng         Decimal?           @db.Decimal(9, 6)
+  created_at          DateTime           @default(now()) @db.Timestamp(6)
+  updated_at          DateTime           @default(now()) @db.Timestamp(6)
+  expenses            expenses[]
+  fuel_logs           fuel_logs[]
+  maintenance_logs    maintenance_logs[]
+  trips               trips[]
+  regions             regions?           @relation(fields: [region_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@id([roleId, permissionId])
-  @@index([roleId])
-  @@index([permissionId])
-}
-
-model Vehicle {
-  id                 String        @id @default(uuid()) @db.Uuid
-  registrationNumber String        @unique @db.VarChar(50)
-  nameModel          String        @db.VarChar(100)
-  type               String?       @db.VarChar(50)
-  maxLoadCapacity    Decimal       @db.Decimal(10, 2)
-  odometer           Decimal       @db.Decimal(12, 2)
-  acquisitionCost    Decimal       @db.Decimal(12, 2)
-  status             VehicleStatus @default(AVAILABLE)
-  currentLat         Decimal?      @db.Decimal(9, 6)
-  currentLng         Decimal?      @db.Decimal(9, 6)
-  createdAt          DateTime      @default(now()) @db.Timestamp
-  updatedAt          DateTime      @updatedAt @db.Timestamp
-
-  trips              Trip[]
-  maintenanceRecords MaintenanceRecord[]
-  fuelLogs           FuelLog[]
-  expenses           Expense[]
-
-  @@index([registrationNumber])
-  @@index([status])
-}
-
-model Driver {
-  id            String       @id @default(uuid()) @db.Uuid
-  userId        String       @unique @db.Uuid
-  user          User         @relation(fields: [userId], references: [id], onDelete: Restrict)
-  licenseNumber String       @unique @db.VarChar(100)
-  status        DriverStatus @default(AVAILABLE)
-  createdAt     DateTime     @default(now()) @db.Timestamp
-  updatedAt     DateTime     @updatedAt @db.Timestamp
-
-  trips    Trip[]
-  fuelLogs FuelLog[]
-  expenses Expense[]
-
-  @@index([licenseNumber])
-  @@index([status])
-}
-
-model Trip {
-  id              String     @id @default(uuid()) @db.Uuid
-  source          String     @db.VarChar(255)
-  destination     String     @db.VarChar(255)
-  sourceLat       Decimal?   @db.Decimal(9, 6)
-  sourceLng       Decimal?   @db.Decimal(9, 6)
-  destLat         Decimal?   @db.Decimal(9, 6)
-  destLng         Decimal?   @db.Decimal(9, 6)
-  vehicleId       String     @db.Uuid
-  vehicle         Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
-  driverId        String     @db.Uuid
-  driver          Driver     @relation(fields: [driverId], references: [id], onDelete: Restrict)
-  cargoWeight     Decimal    @db.Decimal(10, 2)
-  plannedDistance Decimal    @db.Decimal(10, 2)
-  actualDistance  Decimal?   @db.Decimal(10, 2)
-  fuelConsumed    Decimal?   @db.Decimal(10, 2)
-  revenue         Decimal?   @db.Decimal(12, 2)
-  status          TripStatus @default(DRAFT)
-  dispatchedAt    DateTime?  @db.Timestamp
-  completedAt     DateTime?  @db.Timestamp
-  createdBy       String     @db.Uuid
-  dispatcher      User       @relation("TripDispatcher", fields: [createdBy], references: [id], onDelete: Restrict)
-  createdAt       DateTime   @default(now()) @db.Timestamp
-  updatedAt       DateTime   @updatedAt @db.Timestamp
-
-  @@index([vehicleId])
-  @@index([driverId])
-  @@index([status])
-}
-
-model MaintenanceRecord {
-  id          String            @id @default(uuid()) @db.Uuid
-  vehicleId   String            @db.Uuid
-  vehicle     Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  description String            @db.VarChar(500)
-  cost        Decimal           @db.Decimal(12, 2)
-  status      MaintenanceStatus @default(ACTIVE)
-  startedAt   DateTime          @db.Timestamp
-  closedAt    DateTime?         @db.Timestamp
-  createdAt   DateTime          @default(now()) @db.Timestamp
-  updatedAt   DateTime          @updatedAt @db.Timestamp
-
-  @@index([vehicleId])
-  @@index([status])
-}
-
-model FuelLog {
-  id           String   @id @default(uuid()) @db.Uuid
-  vehicleId    String   @db.Uuid
-  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  driverId     String   @db.Uuid
-  driver       Driver   @relation(fields: [driverId], references: [id], onDelete: Restrict)
-  fuelQuantity Decimal  @db.Decimal(10, 2)
-  cost         Decimal  @db.Decimal(12, 2)
-  odometer     Decimal  @db.Decimal(12, 2)
-  loggedAt     DateTime @db.Timestamp
-  createdAt    DateTime @default(now()) @db.Timestamp
-  updatedAt    DateTime @updatedAt @db.Timestamp
-
-  @@index([vehicleId])
-  @@index([driverId])
-}
-
-model Expense {
-  id          String   @id @default(uuid()) @db.Uuid
-  vehicleId   String?  @db.Uuid
-  vehicle     Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
-  driverId    String?  @db.Uuid
-  driver      Driver?  @relation(fields: [driverId], references: [id], onDelete: SetNull)
-  amount      Decimal  @db.Decimal(12, 2)
-  category    String   @db.VarChar(100)
-  description String?  @db.VarChar(500)
-  incurredAt  DateTime @db.Timestamp
-  createdAt   DateTime @default(now()) @db.Timestamp
-  updatedAt   DateTime @updatedAt @db.Timestamp
-
-  @@index([vehicleId])
-  @@index([driverId])
-  @@index([category])
-}
-
-model OrganizationSettings {
-  id               String   @id @default(uuid()) @db.Uuid
-  organizationName String   @db.VarChar(150)
-  timezone         String   @default("UTC") @db.VarChar(50)
-  currency         String   @default("USD") @db.VarChar(10)
-  createdAt        DateTime @default(now()) @db.Timestamp
-  updatedAt        DateTime @updatedAt @db.Timestamp
-}
-
-model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String?  @db.Uuid
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action     String   @db.VarChar(100)
-  entityName String   @db.VarChar(100)
-  entityId   String   @db.VarChar(100)
-  oldValues  Json?
-  newValues  Json?
-  ipAddress  String?  @db.VarChar(45)
-  createdAt  DateTime @default(now()) @db.Timestamp
-
-  @@index([userId])
-  @@index([action])
-  @@index([createdAt])
+  @@index([region_id], map: "idx_vehicles_region_id")
+  @@index([registration_number], map: "idx_vehicles_registration_number")
+  @@index([status], map: "idx_vehicles_status")
 }
