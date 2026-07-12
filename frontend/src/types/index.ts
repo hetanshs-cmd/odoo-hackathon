@@ -10,7 +10,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "driver" | "manager" | "pending";
+  role: "FleetManager" | "Driver" | "SafetyOfficer" | "FinancialAnalyst" | null;
   createdAt: string;
   updatedAt: string;
 }

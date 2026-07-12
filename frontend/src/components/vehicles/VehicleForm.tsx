@@ -17,7 +17,7 @@ export function VehicleForm({ onSuccess }: { onSuccess?: () => void }) {
   const { mutateAsync: createVehicle, isPending } = useCreateVehicle();
 
   const form = useForm<CreateVehiclePayload>({
-    resolver: zodResolver(createVehicleSchema),
+    resolver: zodResolver(createVehicleSchema) as any,
     defaultValues: {
       registrationNumber: "",
       nameModel: "",
