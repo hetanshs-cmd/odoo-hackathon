@@ -10,6 +10,7 @@ import fuelLogsRouter from '../modules/fuel-logs/fuelLogs.routes';
 import expensesRouter from '../modules/expenses/expenses.routes';
 import reportsRouter from '../modules/reports/reports.routes';
 import settingsRouter from '../modules/settings/settings.routes';
+import regionsRouter from '../modules/regions/regions.routes';
 
 /**
  * apiRouter — single aggregation point for all TransitOps API routes.
@@ -37,5 +38,6 @@ apiRouter.use('/fuel-logs', fuelLogsRouter);
 apiRouter.use('/expenses', expensesRouter);
 apiRouter.use('/reports', reportsRouter);
 apiRouter.use('/settings', settingsRouter);
+apiRouter.use('/regions', regionsRouter);
 
 export default apiRouter;

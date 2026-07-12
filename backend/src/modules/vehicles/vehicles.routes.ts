@@ -1,29 +1,34 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { AppError } from '../../utils/AppError';
+import { Router } from 'express';
+import { vehiclesController } from './vehicles.controller';
 
-/**
- * Vehicles Router — /api/vehicles
- *
- * Placeholder module. Manages the fleet vehicle registry.
- *
- * Planned endpoints:
- *   GET    /api/vehicles           → list all vehicles (paginated, filterable)
- *   POST   /api/vehicles           → register a new vehicle
- *   GET    /api/vehicles/:id       → get vehicle details
- *   PUT    /api/vehicles/:id       → update vehicle information
- *   DELETE /api/vehicles/:id       → decommission a vehicle
- *   GET    /api/vehicles/:id/trips → get all trips for a vehicle
- */
 const vehiclesRouter = Router();
 
-vehiclesRouter.all('*', (_req: Request, _res: Response, next: NextFunction): void => {
-  next(
-    new AppError(
-      'NOT_IMPLEMENTED',
-      501,
-      'Vehicles module is not yet implemented. Requires the database schema to be merged first.',
-    ),
-  );
-});
+// Vehicles endpoints — authentication is required for all
+// We commented out requireAuth since user requested to NOT do auth right now,
+// but actually we can just leave the middleware there if we want, or mock it.
+// Wait, user said "donot do auth right now just make API's".
+// I will not use the requireRole middleware for now to ensure APIs can be tested easily.
+// I will just map the routes directly to controllers.
+
+// GET /api/vehicles (All authenticated)
+vehiclesRouter.get('/', vehiclesController.getAll);
+
+// GET /api/vehicles/available (FM, DR)
+vehiclesRouter.get('/available', vehiclesController.getAvailable);
+
+// GET /api/vehicles/:id (All authenticated)
+vehiclesRouter.get('/:id', vehiclesController.getById);
+
+// POST /api/vehicles (FM only)
+vehiclesRouter.post('/', vehiclesController.create);
+
+// PUT /api/vehicles/:id (FM only)
+vehiclesRouter.put('/:id', vehiclesController.update);
+
+// PATCH /api/vehicles/:id/status (FM only)
+vehiclesRouter.patch('/:id/status', vehiclesController.updateStatus);
+
+// DELETE /api/vehicles/:id (FM only)
+vehiclesRouter.delete('/:id', vehiclesController.delete);
 
 export default vehiclesRouter;

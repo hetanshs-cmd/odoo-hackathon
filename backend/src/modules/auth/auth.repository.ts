@@ -42,7 +42,12 @@ export class AuthRepository {
     });
   }
 
-  async createOtp(userId: number, otpHash: string, purpose: string, expiresAt: Date): Promise<OtpVerification> {
+  async createOtp(
+    userId: number,
+    otpHash: string,
+    purpose: string,
+    expiresAt: Date,
+  ): Promise<OtpVerification> {
     return prisma.otpVerification.create({
       data: {
         userId,

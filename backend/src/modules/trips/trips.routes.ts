@@ -1,29 +1,29 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { AppError } from '../../utils/AppError';
+import { Router } from 'express';
+import { tripsController } from './trips.controller';
 
-/**
- * Trips Router — /api/trips
- *
- * Placeholder module. Manages trip scheduling, assignment, and tracking.
- *
- * Planned endpoints:
- *   GET    /api/trips              → list trips (paginated, filterable by status/driver/vehicle)
- *   POST   /api/trips              → create a new trip
- *   GET    /api/trips/:id          → get trip details
- *   PUT    /api/trips/:id          → update trip (route, schedule)
- *   PATCH  /api/trips/:id/status   → update trip status (pending/active/completed/cancelled)
- *   DELETE /api/trips/:id          → cancel a trip
- */
 const tripsRouter = Router();
 
-tripsRouter.all('*', (_req: Request, _res: Response, next: NextFunction): void => {
-  next(
-    new AppError(
-      'NOT_IMPLEMENTED',
-      501,
-      'Trips module is not yet implemented. Requires the database schema to be merged first.',
-    ),
-  );
-});
+// Trips endpoints — authentication is omitted per user request
+
+// GET /api/trips (All authenticated)
+tripsRouter.get('/', tripsController.getAll);
+
+// GET /api/trips/active (All authenticated)
+tripsRouter.get('/active', tripsController.getActive);
+
+// GET /api/trips/:id (All authenticated)
+tripsRouter.get('/:id', tripsController.getById);
+
+// POST /api/trips (FM, DR)
+tripsRouter.post('/', tripsController.create);
+
+// PUT /api/trips/:id (FM, DR)
+tripsRouter.put('/:id', tripsController.update);
+
+// PATCH /api/trips/:id/status (FM, DR)
+tripsRouter.patch('/:id/status', tripsController.updateStatus);
+
+// DELETE /api/trips/:id (FM only)
+tripsRouter.delete('/:id', tripsController.delete);
 
 export default tripsRouter;

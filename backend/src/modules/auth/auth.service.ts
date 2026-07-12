@@ -2,11 +2,18 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { AppError } from '../../utils/AppError';
 import { authRepository } from './auth.repository';
-import { RegisterDto, LoginDto, VerifyOtpDto, ResetPasswordDto, ForgotPasswordDto } from './auth.validator';
+import {
+  RegisterDto,
+  LoginDto,
+  VerifyOtpDto,
+  ResetPasswordDto,
+  ForgotPasswordDto,
+} from './auth.validator';
 import { User } from '@prisma/client';
 
 export class AuthService {
-  private readonly JWT_SECRET = process.env['JWT_SECRET'] || 'fallback-secret-for-dev-only-change-me';
+  private readonly JWT_SECRET =
+    process.env['JWT_SECRET'] || 'fallback-secret-for-dev-only-change-me';
   private readonly JWT_EXPIRES_IN = '1d';
   private readonly OTP_EXPIRY_MINUTES = 10;
   private readonly MAX_OTP_ATTEMPTS = 5;
@@ -16,11 +23,9 @@ export class AuthService {
   }
 
   private generateToken(user: User): string {
-    return jwt.sign(
-      { id: user.id, email: user.email, roleId: user.roleId },
-      this.JWT_SECRET,
-      { expiresIn: this.JWT_EXPIRES_IN }
-    );
+    return jwt.sign({ id: user.id, email: user.email, roleId: user.roleId }, this.JWT_SECRET, {
+      expiresIn: this.JWT_EXPIRES_IN,
+    });
   }
 
   async register(data: RegisterDto) {
@@ -42,6 +47,7 @@ export class AuthService {
     await authRepository.createOtp(user.id, otpHash, 'VERIFY_EMAIL', expiresAt);
 
     // In a real app, send email here. For hackathon, we could just log it or rely on a generic success.
+    // eslint-disable-next-line no-console
     console.log(`[DEV ONLY] OTP for ${user.email} is: ${rawOtp}`);
 
     return { tempId: user.id.toString() };
@@ -100,11 +106,15 @@ export class AuthService {
 
     // For Hackathon standard login flow (JWT without 2FA step unless requested)
     const token = this.generateToken(user);
-    
+
     // According to frontend mock: { requireOtp: boolean, tempToken?: string }
     // If we wanted to enforce 2FA, we would return requireOtp: true, and generate an OTP here.
     // For now, we will return requireOtp: false and the token.
-    return { requireOtp: false, token, user: { id: user.id, email: user.email, name: user.name, role: user.roleId } };
+    return {
+      requireOtp: false,
+      token,
+      user: { id: user.id, email: user.email, name: user.name, role: user.roleId },
+    };
   }
 
   async forgotPassword(data: ForgotPasswordDto) {
@@ -122,6 +132,7 @@ export class AuthService {
 
     await authRepository.createOtp(user.id, otpHash, 'RESET_PASSWORD', expiresAt);
 
+    // eslint-disable-next-line no-console
     console.log(`[DEV ONLY] Password Reset OTP for ${user.email} is: ${rawOtp}`);
     return null;
   }

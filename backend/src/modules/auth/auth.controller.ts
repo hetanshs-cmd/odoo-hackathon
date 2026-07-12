@@ -21,7 +21,11 @@ export class AuthController {
   verifyEmail = asyncHandler(async (req: Request, res: Response) => {
     const validatedData = verifyOtpSchema.parse(req.body);
     await authService.verifyEmail(validatedData);
-    sendOk(res, null, 'Email verified successfully. Your account is pending admin approval if required, otherwise you may login.');
+    sendOk(
+      res,
+      null,
+      'Email verified successfully. Your account is pending admin approval if required, otherwise you may login.',
+    );
   });
 
   login = asyncHandler(async (req: Request, res: Response) => {
@@ -43,11 +47,13 @@ export class AuthController {
   });
 
   logout = asyncHandler(async (req: Request, res: Response) => {
+    await Promise.resolve();
     sendOk(res, null, 'Logged out successfully');
   });
 
   me = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    await Promise.resolve();
+    const user = req.user;
     if (!user) {
       throw new AppError('NOT_AUTHENTICATED', 401, 'Not authenticated');
     }

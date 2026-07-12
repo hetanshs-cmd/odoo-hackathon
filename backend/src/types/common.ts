@@ -56,16 +56,16 @@ export interface PaginatedResult<T> {
  * Field names will align with the users table once the DB branch is merged.
  */
 export interface AuthenticatedUser {
-  id: string;
+  id: number;
   email: string;
-  role: UserRole;
+  role: string | null;
+  driverId?: number; // Added for row-level ownership checks where applicable
 }
 
 /**
- * RBAC roles for TransitOps.
- * Exact values will be confirmed against the DB schema's role column constraint.
+ * RBAC roles for TransitOps (based on API specification).
  */
-export type UserRole = 'admin' | 'dispatcher' | 'driver' | 'mechanic' | 'viewer';
+export type UserRole = 'FleetManager' | 'Driver' | 'SafetyOfficer' | 'FinancialAnalyst';
 
 // ---------------------------------------------------------------------------
 // Error codes — must match the error envelope's `error` field

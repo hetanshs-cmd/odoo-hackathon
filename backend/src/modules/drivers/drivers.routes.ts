@@ -1,29 +1,32 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { AppError } from '../../utils/AppError';
+import { Router } from 'express';
+import { driversController } from './drivers.controller';
 
-/**
- * Drivers Router — /api/drivers
- *
- * Placeholder module. Manages driver profiles, licenses, and assignments.
- *
- * Planned endpoints:
- *   GET    /api/drivers            → list all drivers (paginated)
- *   POST   /api/drivers            → create driver profile
- *   GET    /api/drivers/:id        → get driver details
- *   PUT    /api/drivers/:id        → update driver information
- *   DELETE /api/drivers/:id        → deactivate a driver
- *   GET    /api/drivers/:id/trips  → get all trips assigned to a driver
- */
 const driversRouter = Router();
 
-driversRouter.all('*', (_req: Request, _res: Response, next: NextFunction): void => {
-  next(
-    new AppError(
-      'NOT_IMPLEMENTED',
-      501,
-      'Drivers module is not yet implemented. Requires the database schema to be merged first.',
-    ),
-  );
-});
+// Drivers endpoints — authentication is omitted per user request
+
+// GET /api/drivers (All authenticated)
+driversRouter.get('/', driversController.getAll);
+
+// GET /api/drivers/available (FM, DR)
+driversRouter.get('/available', driversController.getAvailable);
+
+// GET /api/drivers/expiring-licenses (FM)
+driversRouter.get('/expiring-licenses', driversController.getExpiringLicenses);
+
+// GET /api/drivers/:id (All authenticated)
+driversRouter.get('/:id', driversController.getById);
+
+// POST /api/drivers (FM only)
+driversRouter.post('/', driversController.create);
+
+// PUT /api/drivers/:id (FM only)
+driversRouter.put('/:id', driversController.update);
+
+// PATCH /api/drivers/:id/status (FM only)
+driversRouter.patch('/:id/status', driversController.updateStatus);
+
+// DELETE /api/drivers/:id (FM only)
+driversRouter.delete('/:id', driversController.delete);
 
 export default driversRouter;
