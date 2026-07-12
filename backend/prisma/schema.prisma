@@ -1,0 +1,232 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ON_TRIP
+  IN_SHOP
+  RETIRED
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_TRIP
+  OFF_DUTY
+  SUSPENDED
+}
+
+enum TripStatus {
+  DRAFT
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+enum MaintenanceStatus {
+  ACTIVE
+  COMPLETED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(150)
+  passwordHash String   @db.VarChar(255)
+  roleId       String   @db.Uuid
+  role         Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  createdAt    DateTime @default(now()) @db.Timestamp
+  updatedAt    DateTime @updatedAt @db.Timestamp
+
+  driverProfile Driver?
+  tripsCreated  Trip[]     @relation("TripDispatcher")
+  auditLogs     AuditLog[]
+
+  @@index([email])
+  @@index([roleId])
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @db.Timestamp
+  updatedAt   DateTime @updatedAt @db.Timestamp
+
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @db.Timestamp
+  updatedAt   DateTime @updatedAt @db.Timestamp
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @db.Timestamp
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+model Vehicle {
+  id                 String        @id @default(uuid()) @db.Uuid
+  registrationNumber String        @unique @db.VarChar(50)
+  nameModel          String        @db.VarChar(100)
+  type               String?       @db.VarChar(50)
+  maxLoadCapacity    Decimal       @db.Decimal(10, 2)
+  odometer           Decimal       @db.Decimal(12, 2)
+  acquisitionCost    Decimal       @db.Decimal(12, 2)
+  status             VehicleStatus @default(AVAILABLE)
+  currentLat         Decimal?      @db.Decimal(9, 6)
+  currentLng         Decimal?      @db.Decimal(9, 6)
+  createdAt          DateTime      @default(now()) @db.Timestamp
+  updatedAt          DateTime      @updatedAt @db.Timestamp
+
+  trips              Trip[]
+  maintenanceRecords MaintenanceRecord[]
+  fuelLogs           FuelLog[]
+  expenses           Expense[]
+
+  @@index([registrationNumber])
+  @@index([status])
+}
+
+model Driver {
+  id            String       @id @default(uuid()) @db.Uuid
+  userId        String       @unique @db.Uuid
+  user          User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  licenseNumber String       @unique @db.VarChar(100)
+  status        DriverStatus @default(AVAILABLE)
+  createdAt     DateTime     @default(now()) @db.Timestamp
+  updatedAt     DateTime     @updatedAt @db.Timestamp
+
+  trips    Trip[]
+  fuelLogs FuelLog[]
+  expenses Expense[]
+
+  @@index([licenseNumber])
+  @@index([status])
+}
+
+model Trip {
+  id              String     @id @default(uuid()) @db.Uuid
+  source          String     @db.VarChar(255)
+  destination     String     @db.VarChar(255)
+  sourceLat       Decimal?   @db.Decimal(9, 6)
+  sourceLng       Decimal?   @db.Decimal(9, 6)
+  destLat         Decimal?   @db.Decimal(9, 6)
+  destLng         Decimal?   @db.Decimal(9, 6)
+  vehicleId       String     @db.Uuid
+  vehicle         Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  driverId        String     @db.Uuid
+  driver          Driver     @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  cargoWeight     Decimal    @db.Decimal(10, 2)
+  plannedDistance Decimal    @db.Decimal(10, 2)
+  actualDistance  Decimal?   @db.Decimal(10, 2)
+  fuelConsumed    Decimal?   @db.Decimal(10, 2)
+  revenue         Decimal?   @db.Decimal(12, 2)
+  status          TripStatus @default(DRAFT)
+  dispatchedAt    DateTime?  @db.Timestamp
+  completedAt     DateTime?  @db.Timestamp
+  createdBy       String     @db.Uuid
+  dispatcher      User       @relation("TripDispatcher", fields: [createdBy], references: [id], onDelete: Restrict)
+  createdAt       DateTime   @default(now()) @db.Timestamp
+  updatedAt       DateTime   @updatedAt @db.Timestamp
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([status])
+}
+
+model MaintenanceRecord {
+  id          String            @id @default(uuid()) @db.Uuid
+  vehicleId   String            @db.Uuid
+  vehicle     Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  description String            @db.VarChar(500)
+  cost        Decimal           @db.Decimal(12, 2)
+  status      MaintenanceStatus @default(ACTIVE)
+  startedAt   DateTime          @db.Timestamp
+  closedAt    DateTime?         @db.Timestamp
+  createdAt   DateTime          @default(now()) @db.Timestamp
+  updatedAt   DateTime          @updatedAt @db.Timestamp
+
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model FuelLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  vehicleId    String   @db.Uuid
+  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverId     String   @db.Uuid
+  driver       Driver   @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  fuelQuantity Decimal  @db.Decimal(10, 2)
+  cost         Decimal  @db.Decimal(12, 2)
+  odometer     Decimal  @db.Decimal(12, 2)
+  loggedAt     DateTime @db.Timestamp
+  createdAt    DateTime @default(now()) @db.Timestamp
+  updatedAt    DateTime @updatedAt @db.Timestamp
+
+  @@index([vehicleId])
+  @@index([driverId])
+}
+
+model Expense {
+  id          String   @id @default(uuid()) @db.Uuid
+  vehicleId   String?  @db.Uuid
+  vehicle     Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  driverId    String?  @db.Uuid
+  driver      Driver?  @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  amount      Decimal  @db.Decimal(12, 2)
+  category    String   @db.VarChar(100)
+  description String?  @db.VarChar(500)
+  incurredAt  DateTime @db.Timestamp
+  createdAt   DateTime @default(now()) @db.Timestamp
+  updatedAt   DateTime @updatedAt @db.Timestamp
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([category])
+}
+
+model OrganizationSettings {
+  id               String   @id @default(uuid()) @db.Uuid
+  organizationName String   @db.VarChar(150)
+  timezone         String   @default("UTC") @db.VarChar(50)
+  currency         String   @default("USD") @db.VarChar(10)
+  createdAt        DateTime @default(now()) @db.Timestamp
+  updatedAt        DateTime @updatedAt @db.Timestamp
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String   @db.VarChar(100)
+  entityName String   @db.VarChar(100)
+  entityId   String   @db.VarChar(100)
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?  @db.VarChar(45)
+  createdAt  DateTime @default(now()) @db.Timestamp
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
