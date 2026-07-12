@@ -1,15 +1,13 @@
-import Groq from 'groq-sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '../../config/env';
 import { prisma } from '../../config/db';
 
-const groq = new Groq({
-  apiKey: env.GROQ_API_KEY || 'dummy-key',
-});
+const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY || 'dummy-key');
 
 export const aiService = {
   async handleChat(message: string): Promise<string> {
-    if (!env.GROQ_API_KEY || env.GROQ_API_KEY === 'dummy-key') {
-      return "⚠️ **Configuration Error**: I am the AI Assistant, but I don't have a valid Groq API key yet. Please add your `GROQ_API_KEY` to the `.env` file and restart the server.";
+    if (!env.GEMINI_API_KEY || env.GEMINI_API_KEY === 'dummy-key') {
+      return "⚠️ **Configuration Error**: I am the AI Assistant, but I don't have a valid Gemini API key yet. Please add your `GEMINI_API_KEY` to the `.env` file and restart the server.";
     }
 
     try {
@@ -28,19 +26,15 @@ Current Fleet Status:
 
 Answer the user's questions concisely. Use markdown formatting.`;
 
-      const response = await groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message },
-        ],
-        model: 'llama3-8b-8192',
-        temperature: 0.7,
-        max_tokens: 1024,
+      const model = genAI.getGenerativeModel({
+        model: "gemini-3.5-flash",
+        systemInstruction: systemPrompt
       });
 
-      return response.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+      const result = await model.generateContent(message);
+      return result.response.text();
     } catch (error: any) {
-      console.error('Groq API Error:', error);
+      console.error('Gemini API Error:', error);
       throw new Error(error.message || 'Failed to communicate with AI model.');
     }
   },

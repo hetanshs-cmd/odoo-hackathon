@@ -37,8 +37,8 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
-  // ---- Groq ----
-  GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
+  // ---- Gemini ----
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
 
   // ---- CORS ----
   FRONTEND_URL: z.string().url('FRONTEND_URL must be a valid URL'),
