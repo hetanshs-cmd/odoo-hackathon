@@ -1,4 +1,11 @@
-import { PrismaClient, VehicleStatus, DriverStatus, TripStatus, MaintenanceStatus } from '@prisma/client';
+/* eslint-disable no-console */
+import {
+  PrismaClient,
+  VehicleStatus,
+  DriverStatus,
+  TripStatus,
+  MaintenanceStatus,
+} from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -53,7 +60,7 @@ async function main() {
     create: {
       name: 'North America',
       centerLat: 40.7128,
-      centerLng: -74.0060,
+      centerLng: -74.006,
     },
   });
   console.log(`Region created: ${region.name}`);
@@ -102,7 +109,7 @@ async function main() {
       status: TripStatus.SCHEDULED,
       plannedDistance: 215.5,
       cargoWeight: 15000,
-      revenue: 500.00,
+      revenue: 500.0,
       createdBy: user.id,
     },
   });
@@ -126,7 +133,7 @@ async function main() {
       driverId: driver.id,
       tripId: trip.id,
       fuelQuantity: 45.5,
-      cost: 180.00,
+      cost: 180.0,
       odometer: 10550,
     },
   });
@@ -138,7 +145,7 @@ async function main() {
       vehicleId: vehicle.id,
       driverId: driver.id,
       category: 'TOLL',
-      amount: 15.00,
+      amount: 15.0,
       description: 'Highway toll charge',
     },
   });
@@ -167,6 +174,6 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    void prisma.$disconnect();
   });

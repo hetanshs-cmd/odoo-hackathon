@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import { settingsController } from './settings.controller';
+import { requireAuth } from '../../middleware/requireAuth';
+import { requireRole } from '../../middleware/requireRole';
 
 const settingsRouter = Router();
 
-// Settings endpoints
+settingsRouter.use(requireAuth);
+settingsRouter.use(requireRole(['FleetManager']));
 
 // GET /api/settings
 settingsRouter.get('/', settingsController.getSettings);

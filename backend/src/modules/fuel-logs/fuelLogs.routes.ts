@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { fuelLogsController } from './fuelLogs.controller';
+import { requireAuth } from '../../middleware/requireAuth';
+import { requireRole } from '../../middleware/requireRole';
 
 const fuelLogsRouter = Router();
 
-// Fuel Logs endpoints — authentication is omitted per user request
+fuelLogsRouter.use(requireAuth);
 
 // GET /api/fuel-logs
 fuelLogsRouter.get('/', fuelLogsController.getAll);
@@ -12,12 +14,12 @@ fuelLogsRouter.get('/', fuelLogsController.getAll);
 fuelLogsRouter.get('/:id', fuelLogsController.getById);
 
 // POST /api/fuel-logs
-fuelLogsRouter.post('/', fuelLogsController.create);
+fuelLogsRouter.post('/', requireRole(['FleetManager', 'Driver']), fuelLogsController.create);
 
 // PUT /api/fuel-logs/:id
-fuelLogsRouter.put('/:id', fuelLogsController.update);
+fuelLogsRouter.put('/:id', requireRole(['FleetManager', 'Driver']), fuelLogsController.update);
 
 // DELETE /api/fuel-logs/:id
-fuelLogsRouter.delete('/:id', fuelLogsController.delete);
+fuelLogsRouter.delete('/:id', requireRole(['FleetManager']), fuelLogsController.delete);
 
 export default fuelLogsRouter;

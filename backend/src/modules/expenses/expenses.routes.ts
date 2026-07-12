@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { expensesController } from './expenses.controller';
+import { requireAuth } from '../../middleware/requireAuth';
+import { requireRole } from '../../middleware/requireRole';
 
 const expensesRouter = Router();
 
-// Expenses endpoints — authentication is omitted per user request
+expensesRouter.use(requireAuth);
 
 // GET /api/expenses
 expensesRouter.get('/', expensesController.getAll);
@@ -12,12 +14,24 @@ expensesRouter.get('/', expensesController.getAll);
 expensesRouter.get('/:id', expensesController.getById);
 
 // POST /api/expenses
-expensesRouter.post('/', expensesController.create);
+expensesRouter.post(
+  '/',
+  requireRole(['FleetManager', 'FinancialAnalyst']),
+  expensesController.create,
+);
 
 // PUT /api/expenses/:id
-expensesRouter.put('/:id', expensesController.update);
+expensesRouter.put(
+  '/:id',
+  requireRole(['FleetManager', 'FinancialAnalyst']),
+  expensesController.update,
+);
 
 // DELETE /api/expenses/:id
-expensesRouter.delete('/:id', expensesController.delete);
+expensesRouter.delete(
+  '/:id',
+  requireRole(['FleetManager', 'FinancialAnalyst']),
+  expensesController.delete,
+);
 
 export default expensesRouter;

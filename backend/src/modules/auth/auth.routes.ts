@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authController } from './auth.controller';
+import { requireAuth } from '../../middleware/requireAuth';
 
 const authRouter = Router();
 
@@ -16,10 +17,9 @@ authRouter.post('/forgot-password', authController.forgotPassword);
 authRouter.post('/reset-password', authController.resetPassword);
 
 // Session Management
-authRouter.post('/logout', authController.logout);
+authRouter.post('/logout', requireAuth, authController.logout);
 
 // Protected Profile Route
-// (Needs an auth middleware in the future)
-authRouter.get('/me', authController.me);
+authRouter.get('/me', requireAuth, authController.me);
 
 export default authRouter;

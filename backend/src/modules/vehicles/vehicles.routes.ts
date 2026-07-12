@@ -1,34 +1,35 @@
 import { Router } from 'express';
 import { vehiclesController } from './vehicles.controller';
+import { requireAuth } from '../../middleware/requireAuth';
+import { requireRole } from '../../middleware/requireRole';
 
 const vehiclesRouter = Router();
 
-// Vehicles endpoints — authentication is required for all
-// We commented out requireAuth since user requested to NOT do auth right now,
-// but actually we can just leave the middleware there if we want, or mock it.
-// Wait, user said "donot do auth right now just make API's".
-// I will not use the requireRole middleware for now to ensure APIs can be tested easily.
-// I will just map the routes directly to controllers.
+vehiclesRouter.use(requireAuth);
 
 // GET /api/vehicles (All authenticated)
 vehiclesRouter.get('/', vehiclesController.getAll);
 
 // GET /api/vehicles/available (FM, DR)
-vehiclesRouter.get('/available', vehiclesController.getAvailable);
+vehiclesRouter.get(
+  '/available',
+  requireRole(['FleetManager', 'Driver']),
+  vehiclesController.getAvailable,
+);
 
 // GET /api/vehicles/:id (All authenticated)
 vehiclesRouter.get('/:id', vehiclesController.getById);
 
 // POST /api/vehicles (FM only)
-vehiclesRouter.post('/', vehiclesController.create);
+vehiclesRouter.post('/', requireRole(['FleetManager']), vehiclesController.create);
 
 // PUT /api/vehicles/:id (FM only)
-vehiclesRouter.put('/:id', vehiclesController.update);
+vehiclesRouter.put('/:id', requireRole(['FleetManager']), vehiclesController.update);
 
 // PATCH /api/vehicles/:id/status (FM only)
-vehiclesRouter.patch('/:id/status', vehiclesController.updateStatus);
+vehiclesRouter.patch('/:id/status', requireRole(['FleetManager']), vehiclesController.updateStatus);
 
 // DELETE /api/vehicles/:id (FM only)
-vehiclesRouter.delete('/:id', vehiclesController.delete);
+vehiclesRouter.delete('/:id', requireRole(['FleetManager']), vehiclesController.delete);
 
 export default vehiclesRouter;

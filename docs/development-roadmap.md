@@ -58,17 +58,27 @@ This document tracks the current implementation status, team ownership, integrat
   * Reports
   * Settings
 
+#### 5. Backend Core APIs (Unauthenticated)
+* **CRUD Implementation:** Full CRUD controllers, services, and repositories implemented for:
+  * Vehicles
+  * Drivers
+  * Trips
+  * Maintenance
+  * Fuel Logs
+  * Expenses
+  * Reports & Dashboard Stats
+* **Status:** The business logic is implemented, but the routes currently lack `requireAuth` and `requireRole` middleware integration.
+
 ---
 
 ## 2. Current Team Ownership
 
 * **Database Owner:**
-  * Finalize Prisma schema, generated client integration, seed compatibility, database validation, and database-related fixes.
+  * Complete
 * **Frontend Owner:**
   * Continue frontend page implementation, reusable components, responsive UI, loading states, empty states, error states, and API integration preparation.
 * **Backend/API Owner:**
-  * Begin feature APIs after the final database contract is stable.
-  * *Initial Priority:* Vehicles API.
+  * *Current Priority:* Secure all existing feature APIs using the Authentication middleware (`requireAuth` and `requireRole`).
 
 ---
 
@@ -76,79 +86,31 @@ This document tracks the current implementation status, team ownership, integrat
 
 ```mermaid
 graph TD
-    P1[Phase 1: DB Finalization] --> P2[Phase 2: Auth & Authz]
-    P2 --> P3[Phase 3: Vehicles API]
-    P3 --> P4[Phase 4: Drivers API]
-    P4 --> P5[Phase 5: Trips API & Dispatch]
-    P5 --> P6[Phase 6: Maintenance API]
-    P6 --> P7[Phase 7: Fuel & Expenses]
-    P7 --> P8[Phase 8: Dashboard & Reports]
-    P8 --> P9[Phase 9: Frontend API Connection]
-    P9 --> P10[Phase 10: E2E Testing & Demo Prep]
+    P1[Phase 1: DB Finalization] --> P2[Phase 2: Core APIs]
+    P2 --> P3[Phase 3: Auth & Authz Integration]
+    P3 --> P4[Phase 4: Frontend API Connection]
+    P4 --> P5[Phase 5: E2E Testing & Demo Prep]
 ```
 
-### Phase 1: Database Finalization & Verification
-* Finalize and verify database integration.
-* Ensure Prisma schema and seed are fully compatible.
-* Generate Prisma Client.
-* Pass backend type-check, lint, and test suites.
+### Phase 1: Database Finalization & Verification (Completed)
+* Schema merged and seeded. Prisma client generated.
 
-### Phase 2: Authentication and Authorization
-* Implement authentication endpoints (Login, Signup, Refresh, Logout).
-* Implement current-user endpoint (`GET /auth/me`).
-* Implement JWT authentication checks.
-* Implement role and permission authorization middleware.
+### Phase 2: Core APIs (Completed)
+* Implemented Vehicles, Drivers, Trips, Maintenance, Fuel Logs, Expenses, and Dashboard endpoints.
 
-### Phase 3: Vehicles API
-* Implement vehicle listing with pagination, search, and filtering.
-* Implement vehicle details endpoint.
-* Implement create and update vehicle endpoints.
-* Implement vehicle status management.
-* Implement input validation schemas.
-* Separate implementation into controller, service, repository, and validation layers.
-* Write unit/integration tests and update API documentation.
+### Phase 3: Auth & Authz Integration (Current Focus)
+* Secure all feature endpoints with `requireAuth`.
+* Apply role-based access control with `requireRole` (e.g. restrict write operations to FleetManager).
+* Finalize the `/auth/me` and `/auth/logout` endpoints with authentication.
 
-### Phase 4: Drivers API
-* Implement driver listing and details endpoints.
-* Implement create and update driver profiles.
-* Implement driver availability and licence expiration/validity checks.
-* Write unit/integration tests.
-
-### Phase 5: Trips API (Dispatch & Scheduling)
-* Implement trip creation and planning.
-* Implement vehicle and driver assignment.
-* Implement the dispatch workflow (transactional updates to vehicle, driver, and trip states).
-* Implement trip completion and cancellation workflows.
-* Implement automatic availability synchronization upon trip state change.
-* Enforce transactional business rules (e.g., no double-dispatching vehicles or drivers).
-* Write unit/integration tests.
-
-### Phase 6: Maintenance API
-* Implement maintenance logs and scheduling records.
-* Manage vehicle service status and synchronize vehicle availability (setting vehicles to `IN_SHOP` during active maintenance).
-* Implement maintenance cost tracking.
-
-### Phase 7: Fuel Logs & Expenses APIs
-* Implement fuel logs recording and odometer reading validation (monotonicity).
-* Implement operational expenses logs.
-* Filter expenses by categories.
-* Implement cost summaries.
-
-### Phase 8: Dashboard & Reports
-* Aggregate fleet KPIs for the dashboard.
-* Calculate vehicle utilization metrics.
-* Report on trip counts and mileage.
-* Report on maintenance and fuel costs.
-* Report on operational expenses, revenue, and profitability where supported.
-
-### Phase 9: Frontend Integration
+### Phase 4: Frontend Integration
 * Connect React frontend to backend APIs.
 * Replace placeholder mock data with real API data.
 * Wire up loading, error, and empty states.
 * Implement frontend form validation matching API schemas.
 * Implement persistent authentication storage and automatic token refresh.
 
-### Phase 10: Testing, Hardening & Presentation
+### Phase 5: Testing, Hardening & Presentation
 * Write end-to-end integration and workflow tests.
 * Perform cross-device responsive UI testing.
 * Conduct a security review.
