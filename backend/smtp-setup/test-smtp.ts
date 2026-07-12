@@ -7,18 +7,24 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // true for port 465, false for port 587
   auth: {
-    user: 'hetanshwantsmore@gmail.com',
-    pass: 'qbu xggi hmtq ousr', // Must be a Google App Password
+    user: 'svbsoft12@gmail.com',
+    pass: 'jxfrajawjmvzicop', // Must be a Google App Password
   },
 });
 
 // 2. Define the email options
+const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit random OTP
+
 const mailOptions: nodemailer.SendMailOptions = {
   from: '"Transitops" <hetanshwantsmore@gmail.com>',
   to: 'tanish.s4@ahduni.edu.in',
-  subject: 'Test Gmail SMTP from TypeScript',
-  text: 'Hello! This email was sent using TypeScript and Nodemailer.',
-  html: '<b>Hello!</b> This email was sent using TypeScript and Nodemailer.',
+  subject: 'Verify your TransitOps Account',
+  html: `
+    <h2>Welcome to TransitOps!</h2>
+    <p>Please verify your email address to complete your registration.</p>
+    <p>Your OTP code is: <strong>${otp}</strong></p>
+    <p>This code will expire in 10 minutes.</p>
+  `,
 };
 
 // 3. Send the email using async/await
