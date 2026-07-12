@@ -26,7 +26,7 @@ export function VehicleList() {
     );
   }
 
-  if (!vehicles || vehicles.length === 0) {
+  if (!vehicles || !Array.isArray(vehicles) || vehicles.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8 text-center h-[400px]">
         <div className="flex flex-col items-center gap-1">
