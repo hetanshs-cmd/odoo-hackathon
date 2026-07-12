@@ -9,8 +9,9 @@ TransitOps solves the fragmentation and inefficiency in logistics fleet manageme
 - **Trip Management:** Dispatch drivers, assign vehicles, and track trip status from Draft to Completed.
 - **Driver Profiles:** Manage driver statuses, licenses, and availability.
 - **Dashboard & Analytics:** Real-time overview of active trips, available vehicles, and maintenance counts.
-*(Upcoming: Maintenance logging, Fuel & Expenses tracking, and Financial Reports)*
-
+- **Maintenance Logging:** Track vehicle maintenance records and service costs.
+- **Fuel & Expenses:** Log fuel consumption and operational expenses for each vehicle.
+*(Upcoming: Financial Reports)*
 ## Local Setup
 
 Follow these steps to run the project locally. You will need Node.js and PostgreSQL installed.

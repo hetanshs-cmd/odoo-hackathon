@@ -20,6 +20,7 @@ import { env } from './config/env';
 import { createApp } from './app';
 
 const app = createApp();
+// Create HTTP server instance
 const server = http.createServer(app);
 
 server.listen(env.PORT, () => {

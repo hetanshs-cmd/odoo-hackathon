@@ -7,6 +7,7 @@ import { Toaster } from "./components/ui/toaster";
 const queryClient = new QueryClient();
 
 function App() {
+  // Main application root component
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
