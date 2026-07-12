@@ -16,8 +16,8 @@ const navigation = [
   { name: "Vehicles", href: "/vehicles", icon: Truck, roles: ["FleetManager", "SafetyOfficer", "FinancialAnalyst"] },
   { name: "Drivers", href: "/drivers", icon: Users, roles: ["FleetManager", "SafetyOfficer"] },
   { name: "Trips", href: "/trips", icon: Route, roles: ["FleetManager", "Driver", "SafetyOfficer"] },
-  { name: "Maintenance", href: "/maintenance", icon: Wrench, roles: ["FleetManager", "SafetyOfficer"] },
-  { name: "Fuel & Expenses", href: "/fuel-expenses", icon: Fuel, roles: ["FleetManager", "FinancialAnalyst", "Driver"] },
+  { name: "Maintenance", href: "/maintenance", icon: Wrench, roles: ["FleetManager", "SafetyOfficer", "FinancialAnalyst", "Dispatcher", "Driver"] },
+  { name: "Fuel & Expenses", href: "/fuel-expenses", icon: Fuel, roles: ["FleetManager", "SafetyOfficer", "FinancialAnalyst", "Dispatcher", "Driver"] },
   { name: "Reports", href: "/reports", icon: BarChart3, roles: ["FleetManager", "FinancialAnalyst", "SafetyOfficer"] },
   { name: "Settings", href: "/settings", icon: Settings, roles: ["FleetManager"] },
 ];

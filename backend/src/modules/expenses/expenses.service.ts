@@ -34,6 +34,10 @@ export class ExpensesService {
     }
     return expensesRepository.delete(id);
   }
+
+  async getSummary() {
+    return expensesRepository.getSummary();
+  }
 }
 
 export const expensesService = new ExpensesService();

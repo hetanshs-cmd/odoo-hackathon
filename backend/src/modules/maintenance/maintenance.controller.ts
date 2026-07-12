@@ -53,6 +53,12 @@ export const maintenanceController = {
     sendOk(res, record, 'Maintenance record status updated successfully');
   }),
 
+  close: asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params['id'] || '0', 10);
+    const record = await maintenanceService.closeRecord(id);
+    sendOk(res, record, 'Maintenance record closed successfully');
+  }),
+
   delete: asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params['id'] || '0', 10);
     await maintenanceService.deleteRecord(id);

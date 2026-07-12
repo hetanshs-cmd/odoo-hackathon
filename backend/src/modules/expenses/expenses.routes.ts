@@ -8,10 +8,25 @@ const expensesRouter = Router();
 expensesRouter.use(requireAuth);
 
 // GET /api/expenses
-expensesRouter.get('/', expensesController.getAll);
+expensesRouter.get(
+  '/',
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  expensesController.getAll,
+);
+
+// GET /api/expenses/summary
+expensesRouter.get(
+  '/summary',
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  expensesController.getSummary,
+);
 
 // GET /api/expenses/:id
-expensesRouter.get('/:id', expensesController.getById);
+expensesRouter.get(
+  '/:id',
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  expensesController.getById,
+);
 
 // POST /api/expenses
 expensesRouter.post(

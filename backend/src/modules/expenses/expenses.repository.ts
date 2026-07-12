@@ -53,6 +53,31 @@ export class ExpensesRepository {
       where: { id },
     });
   }
+
+  async getSummary() {
+    const vehicles = await prisma.vehicle.findMany({
+      include: {
+        fuelLogs: { select: { cost: true } },
+        maintenanceRecords: { select: { cost: true } },
+      },
+    });
+
+    return vehicles.map((v) => {
+      const totalFuelCost = v.fuelLogs.reduce((sum, log) => sum + Number(log.cost), 0);
+      const totalMaintenanceCost = v.maintenanceRecords.reduce(
+        (sum, record) => sum + Number(record.cost),
+        0,
+      );
+      return {
+        vehicleId: v.id,
+        registrationNumber: v.registrationNumber,
+        nameModel: v.nameModel,
+        totalFuelCost,
+        totalMaintenanceCost,
+        totalOperationalCost: totalFuelCost + totalMaintenanceCost,
+      };
+    });
+  }
 }
 
 export const expensesRepository = new ExpensesRepository();

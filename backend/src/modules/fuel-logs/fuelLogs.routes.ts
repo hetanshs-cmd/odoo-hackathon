@@ -8,18 +8,38 @@ const fuelLogsRouter = Router();
 fuelLogsRouter.use(requireAuth);
 
 // GET /api/fuel-logs
-fuelLogsRouter.get('/', fuelLogsController.getAll);
+fuelLogsRouter.get(
+  '/',
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  fuelLogsController.getAll,
+);
 
 // GET /api/fuel-logs/:id
-fuelLogsRouter.get('/:id', fuelLogsController.getById);
+fuelLogsRouter.get(
+  '/:id',
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  fuelLogsController.getById,
+);
 
 // POST /api/fuel-logs
-fuelLogsRouter.post('/', requireRole(['FleetManager', 'Driver']), fuelLogsController.create);
+fuelLogsRouter.post(
+  '/',
+  requireRole(['FleetManager', 'FinancialAnalyst']),
+  fuelLogsController.create,
+);
 
 // PUT /api/fuel-logs/:id
-fuelLogsRouter.put('/:id', requireRole(['FleetManager', 'Driver']), fuelLogsController.update);
+fuelLogsRouter.put(
+  '/:id',
+  requireRole(['FleetManager', 'FinancialAnalyst']),
+  fuelLogsController.update,
+);
 
 // DELETE /api/fuel-logs/:id
-fuelLogsRouter.delete('/:id', requireRole(['FleetManager']), fuelLogsController.delete);
+fuelLogsRouter.delete(
+  '/:id',
+  requireRole(['FleetManager', 'FinancialAnalyst']),
+  fuelLogsController.delete,
+);
 
 export default fuelLogsRouter;

@@ -36,6 +36,10 @@ export class MaintenanceService {
     return maintenanceRepository.update(id, data);
   }
 
+  async closeRecord(id: number) {
+    return maintenanceRepository.closeRecord(id);
+  }
+
   async updateRecordStatus(id: number, data: UpdateMaintenanceStatusDto) {
     const record = await maintenanceRepository.findById(id);
     if (!record) {
