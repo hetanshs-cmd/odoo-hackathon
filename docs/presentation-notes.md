@@ -139,6 +139,45 @@ the textbook pattern for testable Express apps — Supertest documentation recom
   A: `config/env.ts` calls `process.exit(1)` with a formatted error listing every failing field.
   The server never starts in a broken state.
 - Q: How does this scale to 10,000 users?
-  A: The foundation is stateless — horizontal scaling behind a load balancer requires no changes.
   Rate limiting (express-rate-limit) will be added to auth endpoints in the feature branch.
+
+---
+
+## Feature: Frontend Foundation (TransitOps UI) & Auth Module
+
+### Problem Solved
+The team needs a robust, scalable React frontend to build all enterprise fleet management views upon. It requires a unified authentication flow with 2-step verification and strict role-based access checks, while also providing standard routing, layout wrappers, and robust API handlers that intercept 401s and token expirations.
+
+### How It Works (for the demo)
+1. User hits `/` (Dashboard) and is redirected to `/login` via `ProtectedRoute`.
+2. User enters credentials; UI handles form validation and submits to the backend.
+3. Upon success, user goes to `/login/verify` where they input a 6-digit OTP (paste support enabled).
+4. `AuthContext` consumes the JWT and user data, redirects user back to `/dashboard`.
+5. The `DashboardLayout` renders the Sidebar and Top Navbar, showcasing the responsive application shell. 
+6. User can navigate to `Vehicles`, `Drivers`, `Trips`, etc., viewing placeholder layouts ready for integration.
+
+### Architecture Highlights
+- **Vite + React (TypeScript):** Modern, fast compilation with strict TS adherence (`verbatimModuleSyntax`).
+- **TanStack Query + Axios Interceptors:** Ensures robust token management and data-fetching hooks capability.
+- **Context API for Auth:** Centralizes user state, avoiding prop-drilling.
+- **React Hook Form + Zod:** Strict schema-based form validation eliminating invalid payload dispatching.
+- **Tailwind + shadcn/ui:** Extensible enterprise-level UI foundations without bloat. Custom TransitOps themes integrated.
+
+### Security Measures
+- **No tokens in code:** All API requests leverage dynamic headers supplied by `AuthContext` state/localStorage.
+- **Strict typing:** Total interface-level type-checking between UI layers and API layers.
+- **Form sanitization:** Input elements use native validation rules enhanced by Zod's parsing constraints (e.g., password regex).
+- **ProtectedRoute Guard:** Pre-render redirection logic prevents flashing of protected pages to unauthenticated users.
+
+### Challenges & How We Solved Them
+- **TypeScript Module Resolutions:** Fixing `verbatimModuleSyntax` errors enforced by TS config required converting interface imports to `import type {...}` preventing runtime bloat and strict compliance.
+- **Tailwind CSS versions:** Shadcn/ui latest relies heavily on standard Tailwind v3 behavior, requiring manual configuration of `tailwind.config.js` over automated v4 injection which caused parsing conflicts in the initial setup.
+
+### Likely Reviewer Questions
+- Q: Why use `localStorage` over `httpOnly` cookies for JWT?
+  A: For this hackathon scope, it simplifies frontend data management and allows rapid development. We plan to migrate to `httpOnly` cookies in production for strict XSS prevention, and the transition only requires modifying the `api.ts` interceptors to include credentials, keeping the rest of the application unchanged.
+- Q: Why Framer Motion instead of standard CSS transitions?
+  A: Framer Motion provides programmatic layout animations (like the error shake on invalid OTP) which drastically improves the premium feel of the platform with very few lines of code.
+- Q: How does the app scale if we add 20 more feature pages?
+  A: The `DashboardLayout` encapsulates navigation dynamically, and React Router's nested structure means new modules can be plugged in by simply extending `routes/index.tsx` and adding a placeholder component.
 
