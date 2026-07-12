@@ -1,9 +1,16 @@
-import { useTrips } from "../hooks/useTrips";
+import { useState } from "react";
+import { useTrips, useUpdateTripStatus } from "../hooks/useTrips";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { Route, MapPin, MapPinned } from "lucide-react";
+import { Route, MapPin, MapPinned, Plus } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { TripForm } from "../components/trips/TripForm";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Trips() {
   const { data: trips, isLoading, isError, error } = useTrips();
+  const updateStatus = useUpdateTripStatus();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const { user } = useAuth();
 
   if (isLoading) {
     return (
@@ -43,11 +50,22 @@ export default function Trips() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold md:text-2xl">Trips</h1>
+        {user?.role === "FleetManager" && (
+          <Button onClick={() => setIsFormOpen(!isFormOpen)} className="gap-2">
+            {isFormOpen ? "Cancel" : <><Plus className="w-4 h-4" /> Add Trip</>}
+          </Button>
+        )}
       </div>
-      
-      <div className="grid gap-4 md:grid-cols-2">
-        {trips.map((trip) => (
-          <Card key={trip.id}>
+
+      {isFormOpen ? (
+        <div className="max-w-xl border rounded-lg p-6 bg-card shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Create New Trip</h2>
+          <TripForm onSuccess={() => setIsFormOpen(false)} onCancel={() => setIsFormOpen(false)} />
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {trips.map((trip) => (
+            <Card key={trip.id}>
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
@@ -93,11 +111,27 @@ export default function Trips() {
                     <span className="font-medium">{trip.cargoWeight} kg</span>
                   </div>
                 </div>
+                
+                {user?.role === "FleetManager" && trip.status !== "COMPLETED" && (
+                  <div className="mt-4 pt-4 border-t flex justify-end">
+                    <Button 
+                      size="sm"
+                      onClick={() => updateStatus.mutate({ 
+                        id: trip.id, 
+                        status: trip.status === "DRAFT" ? "IN_PROGRESS" : "COMPLETED" 
+                      })}
+                      disabled={updateStatus.isPending}
+                    >
+                      {trip.status === "DRAFT" ? "Start Trip" : "Complete Trip"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+      )}
     </div>
   );
 }

@@ -182,7 +182,7 @@ async function main() {
     data: {
       name: 'John Doe',
       email: 'john.doe@transitops.com',
-      passwordHash: '$2b$12$K1.L1u6MshX8hD3iCbeCneWq9d5HhW2eR5k9/G1J53j4S0w1.764G',
+      passwordHash: '$2b$12$JfvkTCanuvwJBsb2PzMe5.wvpVmRti5p6WO0unEz.VXSeiPcaGuTu', // password123
       roleId: driverRole.id,
       isActive: true,
       emailVerified: true,
