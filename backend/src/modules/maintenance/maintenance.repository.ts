@@ -1,9 +1,10 @@
-import { PrismaClient, MaintenanceStatus, Prisma } from '@prisma/client';
+import { PrismaClient, MaintenanceStatus, VehicleStatus, Prisma } from '@prisma/client';
 import {
   CreateMaintenanceDto,
   UpdateMaintenanceDto,
   UpdateMaintenanceStatusDto,
 } from './maintenance.validator';
+import { AppError } from '../../utils/AppError';
 
 const prisma = new PrismaClient();
 
@@ -42,11 +43,33 @@ export class MaintenanceRepository {
   }
 
   async create(data: CreateMaintenanceDto) {
-    return prisma.maintenanceRecord.create({
-      data: {
-        ...data,
-        startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
-      },
+    return prisma.$transaction(async (tx) => {
+      const vehicle = await tx.vehicle.findUnique({ where: { id: data.vehicleId } });
+      if (!vehicle) {
+        throw new AppError('NOT_FOUND', 404, 'Vehicle not found');
+      }
+      if (vehicle.status === VehicleStatus.OUT_OF_SERVICE) {
+        throw new AppError(
+          'VALIDATION_ERROR',
+          400,
+          'Cannot perform maintenance on OUT_OF_SERVICE vehicles',
+        );
+      }
+
+      const record = await tx.maintenanceRecord.create({
+        data: {
+          ...data,
+          status: MaintenanceStatus.ACTIVE,
+          startedAt: data.startedAt ? new Date(data.startedAt) : new Date(),
+        },
+      });
+
+      await tx.vehicle.update({
+        where: { id: data.vehicleId },
+        data: { status: VehicleStatus.IN_SHOP },
+      });
+
+      return record;
     });
   }
 
@@ -57,6 +80,40 @@ export class MaintenanceRepository {
         ...data,
         startedAt: data.startedAt ? new Date(data.startedAt) : undefined,
       },
+    });
+  }
+
+  async closeRecord(id: number) {
+    return prisma.$transaction(async (tx) => {
+      const record = await tx.maintenanceRecord.findUnique({
+        where: { id },
+        include: { vehicle: true },
+      });
+
+      if (!record) {
+        throw new AppError('NOT_FOUND', 404, 'Maintenance record not found');
+      }
+
+      if (record.status === MaintenanceStatus.COMPLETED) {
+        throw new AppError('VALIDATION_ERROR', 400, 'Record is already closed');
+      }
+
+      const updatedRecord = await tx.maintenanceRecord.update({
+        where: { id },
+        data: {
+          status: MaintenanceStatus.COMPLETED,
+          closedAt: new Date(),
+        },
+      });
+
+      if (record.vehicle.status !== VehicleStatus.OUT_OF_SERVICE) {
+        await tx.vehicle.update({
+          where: { id: record.vehicleId },
+          data: { status: VehicleStatus.AVAILABLE },
+        });
+      }
+
+      return updatedRecord;
     });
   }
 

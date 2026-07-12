@@ -42,4 +42,9 @@ export const expensesController = {
     await expensesService.deleteExpense(id);
     sendOk(res, null, 'Expense deleted successfully');
   }),
+
+  getSummary: asyncHandler(async (req: Request, res: Response) => {
+    const summary = await expensesService.getSummary();
+    sendOk(res, summary, 'Summary retrieved successfully');
+  }),
 };

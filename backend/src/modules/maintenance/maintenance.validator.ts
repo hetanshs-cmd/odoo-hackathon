@@ -4,7 +4,7 @@ import { MaintenanceStatus } from '@prisma/client';
 export const createMaintenanceSchema = z.object({
   vehicleId: z.number().int().positive('Vehicle ID is required'),
   description: z.string().min(1, 'Description is required').max(255),
-  cost: z.number().nonnegative('Cost must be non-negative').optional(),
+  cost: z.number().nonnegative('Cost must be non-negative'),
   startedAt: z.string().datetime().or(z.date()).optional(),
 });
 
