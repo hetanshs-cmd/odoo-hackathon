@@ -10,21 +10,21 @@ maintenanceRouter.use(requireAuth);
 // GET /api/maintenance (All Roles)
 maintenanceRouter.get(
   '/',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   maintenanceController.getAll,
 );
 
 // GET /api/maintenance/active (All Roles)
 maintenanceRouter.get(
   '/active',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   maintenanceController.getActive,
 );
 
 // GET /api/maintenance/:id (All Roles)
 maintenanceRouter.get(
   '/:id',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   maintenanceController.getById,
 );
 

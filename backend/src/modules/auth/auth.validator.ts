@@ -26,8 +26,13 @@ export const resetPasswordSchema = z.object({
   newPassword: z.string().min(8, 'Password must be at least 8 characters long'),
 });
 
+export const updateProfileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters long').max(100),
+});
+
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type LoginDto = z.infer<typeof loginSchema>;
 export type VerifyOtpDto = z.infer<typeof verifyOtpSchema>;
 export type ForgotPasswordDto = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;
+export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;

@@ -21,5 +21,6 @@ authRouter.post('/logout', requireAuth, authController.logout);
 
 // Protected Profile Route
 authRouter.get('/me', requireAuth, authController.me);
+authRouter.put('/profile', requireAuth, authController.updateProfile);
 
 export default authRouter;

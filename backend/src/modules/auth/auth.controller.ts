@@ -8,6 +8,7 @@ import {
   verifyOtpSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateProfileSchema,
 } from './auth.validator';
 import { AppError } from '../../utils/AppError';
 
@@ -64,6 +65,15 @@ export class AuthController {
       throw new AppError('NOT_AUTHENTICATED', 401, 'Not authenticated');
     }
     sendOk(res, user, 'User profile retrieved');
+  });
+
+  updateProfile = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('NOT_AUTHENTICATED', 401, 'Not authenticated');
+    }
+    const validatedData = updateProfileSchema.parse(req.body);
+    const result = await authService.updateProfile(req.user.id, validatedData);
+    sendOk(res, result, 'Profile updated successfully');
   });
 }
 

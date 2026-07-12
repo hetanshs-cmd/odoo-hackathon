@@ -6,7 +6,7 @@ import { requireRole } from '../../middleware/requireRole';
 const dashboardRouter = Router();
 
 dashboardRouter.use(requireAuth);
-dashboardRouter.use(requireRole(['FleetManager', 'FinancialAnalyst']));
+dashboardRouter.use(requireRole(['FleetManager', 'FinancialAnalyst', 'SafetyOfficer', 'Driver', 'Dispatcher']));
 
 // GET /api/dashboard/stats
 dashboardRouter.get('/stats', dashboardController.getStats);

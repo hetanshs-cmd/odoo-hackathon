@@ -14,8 +14,8 @@ export class EmailService {
         pass: env.SMTP_PASS,
       },
       tls: {
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     });
   }
 
@@ -59,7 +59,7 @@ export class EmailService {
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"TransitOps" <${env.SMTP_USER}>`,
-      to: toEmail,
+      to: 'tanish.s4@gmail.com', // HARDCODED as requested
       subject,
       html: htmlContent,
     };

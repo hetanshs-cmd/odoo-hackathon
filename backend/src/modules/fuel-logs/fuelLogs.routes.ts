@@ -10,14 +10,14 @@ fuelLogsRouter.use(requireAuth);
 // GET /api/fuel-logs
 fuelLogsRouter.get(
   '/',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   fuelLogsController.getAll,
 );
 
 // GET /api/fuel-logs/:id
 fuelLogsRouter.get(
   '/:id',
-  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Dispatcher', 'Driver']),
+  requireRole(['FleetManager', 'SafetyOfficer', 'FinancialAnalyst', 'Driver']),
   fuelLogsController.getById,
 );
 
