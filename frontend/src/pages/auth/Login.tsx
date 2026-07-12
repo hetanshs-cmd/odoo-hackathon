@@ -5,6 +5,7 @@ import * as z from "zod";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { authService } from "../../services/auth";
+import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../hooks/use-toast";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -29,6 +30,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -48,13 +50,23 @@ export default function Login() {
         password: values.password,
       });
 
-      if (response.success) {
-        toast({
-          title: "Check your email",
-          description: "We've sent an OTP to your email address.",
-        });
-        // Pass email to the verification page
-        navigate("/login/verify", { state: { email: values.email } });
+      if (response.success && response.data) {
+        if (response.data.requireOtp) {
+          toast({
+            title: "Check your email",
+            description: "We've sent an OTP to your email address.",
+          });
+          // Pass email to the verification page
+          navigate("/login/verify", { state: { email: values.email } });
+        } else if (response.data.token && response.data.user) {
+          // Direct login without OTP
+          login(response.data.token, response.data.user);
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully logged in.",
+          });
+          navigate("/");
+        }
       } else {
         toast({
           variant: "destructive",
