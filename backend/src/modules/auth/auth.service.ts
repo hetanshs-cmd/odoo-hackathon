@@ -11,6 +11,7 @@ import {
   ForgotPasswordDto,
 } from './auth.validator';
 import { User } from '@prisma/client';
+import { emailService } from '../../services/email.service';
 
 export class AuthService {
   private readonly JWT_SECRET = env.JWT_ACCESS_SECRET || 'fallback-secret-for-dev-only-change-me';
@@ -24,7 +25,11 @@ export class AuthService {
 
   private generateToken(user: User): string {
     return jwt.sign(
-      { id: user.id, email: user.email, role: (user as any).role?.name },
+      {
+        id: user.id,
+        email: user.email,
+        role: (user as User & { role?: { name: string } }).role?.name,
+      },
       this.JWT_SECRET,
       {
         expiresIn: this.JWT_EXPIRES_IN,
@@ -50,9 +55,8 @@ export class AuthService {
 
     await authRepository.createOtp(user.id, otpHash, 'VERIFY_EMAIL', expiresAt);
 
-    // In a real app, send email here. For hackathon, we could just log it or rely on a generic success.
-    // eslint-disable-next-line no-console
-    console.log(`[DEV ONLY] OTP for ${user.email} is: ${rawOtp}`);
+    // Send OTP via Email
+    await emailService.sendOtpEmail(data.email, data.name, rawOtp, 'registration');
 
     return { tempId: user.id.toString() };
   }
@@ -103,21 +107,61 @@ export class AuthService {
       throw new AppError('INVALID_CREDENTIALS', 401, 'Invalid email or password.');
     }
 
-    // Example logic: if email is not verified, require OTP step for login, or just require OTP for all logins
     if (!user.emailVerified) {
       throw new AppError('FORBIDDEN', 403, 'Please verify your email before logging in.');
     }
 
-    // For Hackathon standard login flow (JWT without 2FA step unless requested)
+    // Clear any existing login OTPs for this user
+    await authRepository.clearUserOtps(user.id, 'LOGIN');
+
+    // Generate and send login OTP
+    const rawOtp = this.generateOtp();
+    const otpHash = await bcrypt.hash(rawOtp, 10);
+    const expiresAt = new Date(Date.now() + this.OTP_EXPIRY_MINUTES * 60000);
+
+    await authRepository.createOtp(user.id, otpHash, 'LOGIN', expiresAt);
+
+    // Send OTP via Email
+    await emailService.sendOtpEmail(data.email, user.name, rawOtp, 'login');
+
+    return {
+      requireOtp: true,
+    };
+  }
+
+  async verifyLoginOtp(data: VerifyOtpDto) {
+    const user = await authRepository.findUserByEmail(data.email);
+    if (!user) {
+      throw new AppError('VALIDATION_ERROR', 400, 'Invalid or expired OTP.');
+    }
+
+    const otpRecord = await authRepository.getValidOtp(user.id, 'LOGIN');
+    if (!otpRecord) {
+      throw new AppError('VALIDATION_ERROR', 400, 'OTP is invalid or has expired.');
+    }
+
+    if (otpRecord.attempts >= this.MAX_OTP_ATTEMPTS) {
+      throw new AppError('FORBIDDEN', 400, 'Too many failed attempts. Please login again.');
+    }
+
+    const isValid = await bcrypt.compare(data.otp, otpRecord.otpHash);
+    if (!isValid) {
+      await authRepository.incrementOtpAttempts(otpRecord.id, otpRecord.attempts);
+      throw new AppError('VALIDATION_ERROR', 400, 'Invalid OTP code.');
+    }
+
+    await authRepository.markOtpAsUsed(otpRecord.id);
+
     const token = this.generateToken(user);
 
-    // According to frontend mock: { requireOtp: boolean, tempToken?: string }
-    // If we wanted to enforce 2FA, we would return requireOtp: true, and generate an OTP here.
-    // For now, we will return requireOtp: false and the token.
     return {
-      requireOtp: false,
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: (user as any).role?.name },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: (user as User & { role?: { name: string } }).role?.name,
+      },
     };
   }
 
@@ -136,8 +180,8 @@ export class AuthService {
 
     await authRepository.createOtp(user.id, otpHash, 'RESET_PASSWORD', expiresAt);
 
-    // eslint-disable-next-line no-console
-    console.log(`[DEV ONLY] Password Reset OTP for ${user.email} is: ${rawOtp}`);
+    // Send Password Reset OTP
+    await emailService.sendOtpEmail(user.email, user.name, rawOtp, 'password_reset');
     return null;
   }
 

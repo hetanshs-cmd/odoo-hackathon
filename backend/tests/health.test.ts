@@ -17,6 +17,8 @@ process.env['JWT_REFRESH_SECRET'] = 'test-refresh-secret-that-is-long-enough-for
 process.env['FRONTEND_URL'] = 'http://localhost:3000';
 process.env['BCRYPT_ROUNDS'] = '10';
 process.env['LOG_FORMAT'] = 'tiny';
+process.env['SMTP_USER'] = 'test@example.com';
+process.env['SMTP_PASS'] = 'testpass';
 
 import request from 'supertest';
 import { createApp } from '../src/app';
@@ -60,23 +62,5 @@ describe('Health Endpoint', () => {
     });
   });
 
-  describe('ANY /api/auth', () => {
-    it('should return 501 NOT_IMPLEMENTED for placeholder auth routes', async () => {
-      const response = await request(app).get('/api/auth/login');
 
-      expect(response.status).toBe(501);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('NOT_IMPLEMENTED');
-    });
-  });
-
-  describe('ANY /api/vehicles', () => {
-    it('should return 501 NOT_IMPLEMENTED for placeholder vehicles routes', async () => {
-      const response = await request(app).get('/api/vehicles');
-
-      expect(response.status).toBe(501);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('NOT_IMPLEMENTED');
-    });
-  });
 });
