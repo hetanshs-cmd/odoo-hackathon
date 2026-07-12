@@ -65,7 +65,7 @@ export interface AuthenticatedUser {
 /**
  * RBAC roles for TransitOps (based on API specification).
  */
-export type UserRole = 'FleetManager' | 'Driver' | 'SafetyOfficer' | 'FinancialAnalyst';
+export type UserRole = 'FleetManager' | 'Driver' | 'SafetyOfficer' | 'FinancialAnalyst' | 'Dispatcher';
 
 // ---------------------------------------------------------------------------
 // Error codes — must match the error envelope's `error` field
