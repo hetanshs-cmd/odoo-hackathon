@@ -31,7 +31,7 @@ export const authService = {
   },
 
   login: async (data: LoginPayload) => {
-    const res = await api.post<ApiResponse<{ requireOtp: boolean, tempToken?: string }>>("/auth/login", data);
+    const res = await api.post<ApiResponse<{ requireOtp: boolean, tempToken?: string, token?: string, user?: User }>>("/auth/login", data);
     return res.data;
   },
 
