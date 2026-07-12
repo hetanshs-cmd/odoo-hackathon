@@ -11,6 +11,7 @@ import expensesRouter from '../modules/expenses/expenses.routes';
 import reportsRouter from '../modules/reports/reports.routes';
 import settingsRouter from '../modules/settings/settings.routes';
 import regionsRouter from '../modules/regions/regions.routes';
+import aiRouter from '../modules/ai/ai.routes';
 
 /**
  * apiRouter — single aggregation point for all TransitOps API routes.
@@ -39,5 +40,6 @@ apiRouter.use('/expenses', expensesRouter);
 apiRouter.use('/reports', reportsRouter);
 apiRouter.use('/settings', settingsRouter);
 apiRouter.use('/regions', regionsRouter);
+apiRouter.use('/ai', aiRouter);
 
 export default apiRouter;
