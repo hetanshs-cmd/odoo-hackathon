@@ -133,11 +133,13 @@ erDiagram
 ### User
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
 | name | VARCHAR(100) | NOT NULL |
 | email | VARCHAR(150) | UNIQUE, NOT NULL |
 | passwordHash | VARCHAR(255) | NOT NULL |
-| roleId | UUID | FK → Role(id), ON DELETE RESTRICT, NOT NULL |
+| roleId | Int | FK → Role(id), ON DELETE RESTRICT, NULLABLE |
+| isActive | Boolean | DEFAULT false |
+| emailVerified | Boolean | DEFAULT false |
 | createdAt | TIMESTAMP | DEFAULT NOW() |
 | updatedAt | TIMESTAMP | AUTO-UPDATED |
 
@@ -148,7 +150,7 @@ erDiagram
 ### Role
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
 | name | VARCHAR(50) | UNIQUE, NOT NULL |
 | description | VARCHAR(255) | NULLABLE |
 | createdAt | TIMESTAMP | DEFAULT NOW() |
@@ -159,7 +161,7 @@ erDiagram
 ### Permission
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
 | name | VARCHAR(100) | UNIQUE, NOT NULL |
 | description | VARCHAR(255) | NULLABLE |
 | createdAt | TIMESTAMP | DEFAULT NOW() |
@@ -170,8 +172,8 @@ erDiagram
 ### RolePermission (Junction Table)
 | Column | Type | Constraints |
 |--------|------|-------------|
-| roleId | UUID | COMPOSITE PK, FK → Role(id), ON DELETE CASCADE |
-| permissionId | UUID | COMPOSITE PK, FK → Permission(id), ON DELETE CASCADE |
+| roleId | Int | COMPOSITE PK, FK → Role(id), ON DELETE CASCADE |
+| permissionId | Int | COMPOSITE PK, FK → Permission(id), ON DELETE CASCADE |
 | createdAt | TIMESTAMP | DEFAULT NOW() |
 
 **Indexes**: `roleId`, `permissionId`
@@ -181,7 +183,7 @@ erDiagram
 ### Vehicle
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
 | registrationNumber | VARCHAR(50) | UNIQUE, NOT NULL |
 | nameModel | VARCHAR(100) | NOT NULL |
 | type | VARCHAR(50) | NULLABLE |
@@ -201,8 +203,8 @@ erDiagram
 ### Driver
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
-| userId | UUID | UNIQUE, FK → User(id), ON DELETE RESTRICT |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
+| userId | Int | UNIQUE, FK → User(id), ON DELETE RESTRICT |
 | licenseNumber | VARCHAR(100) | UNIQUE, NOT NULL |
 | status | ENUM(AVAILABLE, ON_TRIP, OFF_DUTY, SUSPENDED) | DEFAULT AVAILABLE |
 | createdAt | TIMESTAMP | DEFAULT NOW() |
@@ -215,15 +217,15 @@ erDiagram
 ### Trip
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
 | source | VARCHAR(255) | NOT NULL |
 | destination | VARCHAR(255) | NOT NULL |
 | sourceLat | DECIMAL(9,6) | NULLABLE |
 | sourceLng | DECIMAL(9,6) | NULLABLE |
 | destLat | DECIMAL(9,6) | NULLABLE |
 | destLng | DECIMAL(9,6) | NULLABLE |
-| vehicleId | UUID | FK → Vehicle(id), ON DELETE RESTRICT |
-| driverId | UUID | FK → Driver(id), ON DELETE RESTRICT |
+| vehicleId | Int | FK → Vehicle(id), ON DELETE RESTRICT |
+| driverId | Int | FK → Driver(id), ON DELETE RESTRICT |
 | cargoWeight | DECIMAL(10,2) | NOT NULL |
 | plannedDistance | DECIMAL(10,2) | NOT NULL |
 | actualDistance | DECIMAL(10,2) | NULLABLE |
@@ -232,7 +234,7 @@ erDiagram
 | status | ENUM(DRAFT, DISPATCHED, COMPLETED, CANCELLED) | DEFAULT DRAFT |
 | dispatchedAt | TIMESTAMP | NULLABLE |
 | completedAt | TIMESTAMP | NULLABLE |
-| createdBy | UUID | FK → User(id), ON DELETE RESTRICT |
+| createdBy | Int | FK → User(id), ON DELETE SET NULL |
 | createdAt | TIMESTAMP | DEFAULT NOW() |
 | updatedAt | TIMESTAMP | AUTO-UPDATED |
 
@@ -260,9 +262,9 @@ erDiagram
 ### FuelLog
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
-| vehicleId | UUID | FK → Vehicle(id), ON DELETE CASCADE |
-| driverId | UUID | FK → Driver(id), ON DELETE RESTRICT |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
+| vehicleId | Int | FK → Vehicle(id), ON DELETE CASCADE |
+| driverId | Int | FK → Driver(id), ON DELETE SET NULL, NULLABLE |
 | fuelQuantity | DECIMAL(10,2) | NOT NULL |
 | cost | DECIMAL(12,2) | NOT NULL |
 | odometer | DECIMAL(12,2) | NOT NULL |
@@ -277,9 +279,9 @@ erDiagram
 ### Expense
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
-| vehicleId | UUID | NULLABLE, FK → Vehicle(id), ON DELETE SET NULL |
-| driverId | UUID | NULLABLE, FK → Driver(id), ON DELETE SET NULL |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
+| vehicleId | Int | NULLABLE, FK → Vehicle(id), ON DELETE CASCADE |
+| driverId | Int | NULLABLE, FK → Driver(id), ON DELETE SET NULL |
 | amount | DECIMAL(12,2) | NOT NULL |
 | category | VARCHAR(100) | NOT NULL |
 | description | VARCHAR(500) | NULLABLE |
@@ -306,8 +308,8 @@ erDiagram
 ### AuditLog
 | Column | Type | Constraints |
 |--------|------|-------------|
-| id | UUID | PRIMARY KEY, DEFAULT uuid() |
-| userId | UUID | NULLABLE, FK → User(id), ON DELETE SET NULL |
+| id | Int | PRIMARY KEY, AUTOINCREMENT |
+| userId | Int | NULLABLE, FK → User(id), ON DELETE SET NULL |
 | action | VARCHAR(100) | NOT NULL |
 | entityName | VARCHAR(100) | NOT NULL |
 | entityId | VARCHAR(100) | NOT NULL |

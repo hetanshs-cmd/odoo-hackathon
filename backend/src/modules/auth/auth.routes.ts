@@ -1,30 +1,25 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { AppError } from '../../utils/AppError';
+import { Router } from 'express';
+import { authController } from './auth.controller';
 
-/**
- * Auth Router — /api/auth
- *
- * Placeholder module. Business logic will be implemented in a dedicated
- * feature branch (feature/auth-*) after the database schema is merged.
- *
- * Planned endpoints:
- *   POST /api/auth/signup       → register a new user
- *   POST /api/auth/login        → authenticate and issue JWT pair
- *   POST /api/auth/refresh      → exchange refresh token for new access token
- *   POST /api/auth/logout       → invalidate refresh token
- *   GET  /api/auth/me           → get current authenticated user's profile
- */
 const authRouter = Router();
 
-// Temporary placeholder — all auth routes return 501 Not Implemented
-authRouter.all('*', (_req: Request, _res: Response, next: NextFunction): void => {
-  next(
-    new AppError(
-      'NOT_IMPLEMENTED',
-      501,
-      'Auth module is not yet implemented. It will be available after the database schema branch is merged.',
-    ),
-  );
-});
+// Registration Flow
+authRouter.post('/register', authController.register);
+authRouter.post('/register/verify', authController.verifyEmail);
+
+// Login Flow
+authRouter.post('/login', authController.login);
+// authRouter.post('/login/verify', authController.verifyLoginOtp); // Only if enforcing 2FA
+
+// Password Reset Flow
+authRouter.post('/forgot-password', authController.forgotPassword);
+authRouter.post('/reset-password', authController.resetPassword);
+
+// Session Management
+authRouter.post('/logout', authController.logout);
+
+// Protected Profile Route
+// (Needs an auth middleware in the future)
+authRouter.get('/me', authController.me);
 
 export default authRouter;
