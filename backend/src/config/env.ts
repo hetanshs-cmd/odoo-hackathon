@@ -43,6 +43,10 @@ const envSchema = z.object({
   // ---- Database (optional until DB branch merges) ----
   DATABASE_URL: z.string().optional(),
 
+  // ---- SMTP ----
+  SMTP_USER: z.string().email('SMTP_USER must be a valid email address'),
+  SMTP_PASS: z.string().min(1, 'SMTP_PASS is required'),
+
   // ---- Bcrypt ----
   BCRYPT_ROUNDS: z
     .string()

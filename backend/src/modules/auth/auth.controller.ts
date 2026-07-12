@@ -31,6 +31,12 @@ export class AuthController {
   login = asyncHandler(async (req: Request, res: Response) => {
     const validatedData = loginSchema.parse(req.body);
     const result = await authService.login(validatedData);
+    sendOk(res, result, 'OTP has been sent to your email.');
+  });
+
+  verifyLoginOtp = asyncHandler(async (req: Request, res: Response) => {
+    const validatedData = verifyOtpSchema.parse(req.body);
+    const result = await authService.verifyLoginOtp(validatedData);
     sendOk(res, result, 'Login successful');
   });
 
