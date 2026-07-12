@@ -14,14 +14,6 @@ export default function FuelExpenses() {
     ? (user.role as any).name 
     : user?.role || "";
 
-  // Debugging permission bug
-  console.log("[DEBUG] FuelExpenses.tsx canEdit computation:", {
-    rawUserRole: user?.role,
-    extractedUserRole: userRole,
-    expectedRoles: ["FleetManager", "FinancialAnalyst"],
-    canEdit: ["FleetManager", "FinancialAnalyst"].includes(userRole)
-  });
-  
   // Roles allowed to view the page (all roles)
   const canView = ["FleetManager", "SafetyOfficer", "FinancialAnalyst", "Dispatcher", "Driver"].includes(userRole);
   // Roles allowed to edit

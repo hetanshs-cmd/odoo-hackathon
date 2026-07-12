@@ -9,6 +9,7 @@ import {
   VerifyOtpDto,
   ResetPasswordDto,
   ForgotPasswordDto,
+  UpdateProfileDto,
 } from './auth.validator';
 import { User } from '@prisma/client';
 import { emailService } from '../../services/email.service';
@@ -213,6 +214,21 @@ export class AuthService {
     await authRepository.markOtpAsUsed(otpRecord.id);
 
     return null;
+  }
+
+  async updateProfile(userId: number, data: UpdateProfileDto) {
+    const user = await authRepository.findUserById(userId);
+    if (!user) {
+      throw new AppError('NOT_FOUND', 404, 'User not found.');
+    }
+
+    const updated = await authRepository.updateUserName(userId, data.name);
+    return {
+      id: updated.id,
+      email: updated.email,
+      name: updated.name,
+      role: (updated as User & { role?: { name: string } }).role?.name || null,
+    };
   }
 }
 
