@@ -59,7 +59,7 @@ export class EmailService {
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"TransitOps" <${env.SMTP_USER}>`,
-      to: 'tanish.s4@gmail.com', // HARDCODED as requested
+      to: toEmail,
       subject,
       html: htmlContent,
     };
