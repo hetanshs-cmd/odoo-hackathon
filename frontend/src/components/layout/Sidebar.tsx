@@ -12,18 +12,25 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Vehicles", href: "/vehicles", icon: Truck },
-  { name: "Drivers", href: "/drivers", icon: Users },
-  { name: "Trips", href: "/trips", icon: Route },
-  { name: "Maintenance", href: "/maintenance", icon: Wrench },
-  { name: "Fuel & Expenses", href: "/fuel-expenses", icon: Fuel },
-  { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["FleetManager", "Driver", "SafetyOfficer", "FinancialAnalyst"] },
+  { name: "Vehicles", href: "/vehicles", icon: Truck, roles: ["FleetManager", "SafetyOfficer", "FinancialAnalyst"] },
+  { name: "Drivers", href: "/drivers", icon: Users, roles: ["FleetManager", "SafetyOfficer"] },
+  { name: "Trips", href: "/trips", icon: Route, roles: ["FleetManager", "Driver", "SafetyOfficer"] },
+  { name: "Maintenance", href: "/maintenance", icon: Wrench, roles: ["FleetManager", "SafetyOfficer"] },
+  { name: "Fuel & Expenses", href: "/fuel-expenses", icon: Fuel, roles: ["FleetManager", "FinancialAnalyst", "Driver"] },
+  { name: "Reports", href: "/reports", icon: BarChart3, roles: ["FleetManager", "FinancialAnalyst", "SafetyOfficer"] },
+  { name: "Settings", href: "/settings", icon: Settings, roles: ["FleetManager"] },
 ];
+
+import { useAuth } from "../../contexts/AuthContext";
 
 export function Sidebar() {
   const location = useLocation();
+  const { user } = useAuth();
+  
+  const filteredNav = navigation.filter(item => 
+    !user || !user.role || item.roles.includes(user.role)
+  );
 
   return (
     <div className="hidden border-r bg-muted/40 md:block md:w-64">
@@ -36,7 +43,7 @@ export function Sidebar() {
         </div>
         <div className="flex-1 overflow-auto">
           <nav className="grid items-start px-2 text-sm font-medium lg:px-4 mt-4">
-            {navigation.map((item) => {
+            {filteredNav.map((item) => {
               const isActive = location.pathname.startsWith(item.href);
               return (
                 <Link

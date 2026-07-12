@@ -7,10 +7,11 @@ async function main() {
 
   // 1. Clear existing data in correct dependency order
   await prisma.auditLog.deleteMany();
-  await prisma.expense.deleteMany();
-  await prisma.fuelLog.deleteMany();
-  await prisma.maintenanceRecord.deleteMany();
   await prisma.trip.deleteMany();
+  await prisma.maintenanceRecord.deleteMany();
+  await prisma.fuelLog.deleteMany();
+  await prisma.expense.deleteMany();
+  await prisma.vehicle.deleteMany();
   await prisma.driver.deleteMany();
   await prisma.rolePermission.deleteMany();
   await prisma.permission.deleteMany();
@@ -47,17 +48,24 @@ async function main() {
   console.log(`Created ${Object.keys(permissions).length} permissions`);
 
   // 4. Roles
-  const adminRole = await prisma.role.create({
+  const fleetManagerRole = await prisma.role.create({
     data: {
-      name: 'Admin',
-      description: 'System Administrator with full access',
+      name: 'FleetManager',
+      description: 'System Administrator and Fleet Manager',
     },
   });
 
-  const dispatcherRole = await prisma.role.create({
+  const safetyOfficerRole = await prisma.role.create({
     data: {
-      name: 'Dispatcher',
-      description: 'Fleet manager responsible for trips and vehicles',
+      name: 'SafetyOfficer',
+      description: 'Monitors safety and compliance',
+    },
+  });
+
+  const financialAnalystRole = await prisma.role.create({
+    data: {
+      name: 'FinancialAnalyst',
+      description: 'Handles expenses and reporting',
     },
   });
 
@@ -67,50 +75,77 @@ async function main() {
       description: 'Vehicle operators who log runs and fuel',
     },
   });
-  console.log('Created Roles: Admin, Dispatcher, Driver');
+  console.log('Created Roles: FleetManager, SafetyOfficer, FinancialAnalyst, Driver');
 
   // 5. Role Permissions
-  // Admin gets all permissions
+  // FleetManager gets all permissions
   for (const perm of Object.values(permissions)) {
     await prisma.rolePermission.create({
       data: {
-        roleId: adminRole.id,
+        roleId: fleetManagerRole.id,
         permissionId: perm.id,
       },
     });
   }
 
-  // Dispatcher gets subset
-  const dispatcherPerms = ['read:users', 'read:vehicles', 'write:vehicles', 'read:trips', 'write:trips'];
-  for (const name of dispatcherPerms) {
+  // SafetyOfficer gets read access
+  const safetyPerms = ['read:users', 'read:vehicles', 'read:trips'];
+  for (const name of safetyPerms) {
     await prisma.rolePermission.create({
       data: {
-        roleId: dispatcherRole.id,
+        roleId: safetyOfficerRole.id,
+        permissionId: permissions[name].id,
+      },
+    });
+  }
+
+  // FinancialAnalyst gets expense access
+  const financePerms = ['read:vehicles', 'read:trips', 'read:expenses', 'write:expenses'];
+  for (const name of financePerms) {
+    await prisma.rolePermission.create({
+      data: {
+        roleId: financialAnalystRole.id,
         permissionId: permissions[name].id,
       },
     });
   }
   console.log('Configured Role-Permission RBAC mapping');
 
-  // 6. Users (Admin and Dispatcher)
-  const adminUser = await prisma.user.create({
+  // 6. Users (All roles)
+  // Password for all is 'password123'
+  const fleetManagerUser = await prisma.user.create({
     data: {
-      name: 'Transit Admin',
-      email: 'admin@transitops.com',
-      passwordHash: '$2b$12$K1.L1u6MshX8hD3iCbeCneWq9d5HhW2eR5k9/G1J53j4S0w1.764G', // mock bcrypt hash
-      roleId: adminRole.id,
+      name: 'Manager User',
+      email: 'manager@transitops.com',
+      passwordHash: '$2b$12$JfvkTCanuvwJBsb2PzMe5.wvpVmRti5p6WO0unEz.VXSeiPcaGuTu', // mock bcrypt hash for password123
+      roleId: fleetManagerRole.id,
+      isActive: true,
+      emailVerified: true,
     },
   });
 
-  const dispatcherUser = await prisma.user.create({
+  const safetyUser = await prisma.user.create({
     data: {
-      name: 'Jane Dispatcher',
-      email: 'jane@transitops.com',
-      passwordHash: '$2b$12$K1.L1u6MshX8hD3iCbeCneWq9d5HhW2eR5k9/G1J53j4S0w1.764G',
-      roleId: dispatcherRole.id,
+      name: 'Safety User',
+      email: 'safety@transitops.com',
+      passwordHash: '$2b$12$JfvkTCanuvwJBsb2PzMe5.wvpVmRti5p6WO0unEz.VXSeiPcaGuTu',
+      roleId: safetyOfficerRole.id,
+      isActive: true,
+      emailVerified: true,
     },
   });
-  console.log('Created admin and dispatcher users');
+
+  const financeUser = await prisma.user.create({
+    data: {
+      name: 'Finance User',
+      email: 'finance@transitops.com',
+      passwordHash: '$2b$12$JfvkTCanuvwJBsb2PzMe5.wvpVmRti5p6WO0unEz.VXSeiPcaGuTu',
+      roleId: financialAnalystRole.id,
+      isActive: true,
+      emailVerified: true,
+    },
+  });
+  console.log('Created fleet manager, safety officer, and financial analyst users');
 
   // 7. Vehicles
   const vehicle1 = await prisma.vehicle.create({
@@ -149,6 +184,8 @@ async function main() {
       email: 'john.doe@transitops.com',
       passwordHash: '$2b$12$K1.L1u6MshX8hD3iCbeCneWq9d5HhW2eR5k9/G1J53j4S0w1.764G',
       roleId: driverRole.id,
+      isActive: true,
+      emailVerified: true,
     },
   });
 
@@ -175,7 +212,7 @@ async function main() {
       cargoWeight: 18500.00,
       plannedDistance: 370.00,
       status: TripStatus.DRAFT,
-      createdBy: dispatcherUser.id,
+      createdBy: fleetManagerUser.id,
     },
   });
   console.log('Created sample trips');

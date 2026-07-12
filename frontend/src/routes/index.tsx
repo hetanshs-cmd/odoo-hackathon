@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { RoleRoute } from "./RoleRoute";
 import { DashboardLayout } from "../components/layout/DashboardLayout";
 
 // Auth Pages
@@ -61,32 +62,62 @@ export const router = createBrowserRouter([
             element: <Dashboard />,
           },
           {
-            path: "vehicles",
-            element: <Vehicles />,
+            element: <RoleRoute allowedRoles={["FleetManager", "SafetyOfficer", "FinancialAnalyst"]} />,
+            children: [
+              {
+                path: "vehicles",
+                element: <Vehicles />,
+              },
+            ]
           },
           {
-            path: "drivers",
-            element: <Drivers />,
+            element: <RoleRoute allowedRoles={["FleetManager", "SafetyOfficer"]} />,
+            children: [
+              {
+                path: "drivers",
+                element: <Drivers />,
+              },
+              {
+                path: "maintenance",
+                element: <Maintenance />,
+              },
+            ]
           },
           {
-            path: "trips",
-            element: <Trips />,
+            element: <RoleRoute allowedRoles={["FleetManager", "Driver", "SafetyOfficer"]} />,
+            children: [
+              {
+                path: "trips",
+                element: <Trips />,
+              },
+            ]
           },
           {
-            path: "maintenance",
-            element: <Maintenance />,
+            element: <RoleRoute allowedRoles={["FleetManager", "FinancialAnalyst", "Driver"]} />,
+            children: [
+              {
+                path: "fuel-expenses",
+                element: <FuelExpenses />,
+              },
+            ]
           },
           {
-            path: "fuel-expenses",
-            element: <FuelExpenses />,
+            element: <RoleRoute allowedRoles={["FleetManager", "FinancialAnalyst", "SafetyOfficer"]} />,
+            children: [
+              {
+                path: "reports",
+                element: <Reports />,
+              },
+            ]
           },
           {
-            path: "reports",
-            element: <Reports />,
-          },
-          {
-            path: "settings",
-            element: <Settings />,
+            element: <RoleRoute allowedRoles={["FleetManager"]} />,
+            children: [
+              {
+                path: "settings",
+                element: <Settings />,
+              },
+            ]
           },
         ],
       },

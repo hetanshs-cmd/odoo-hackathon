@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { AppError } from '../../utils/AppError';
 import { authRepository } from './auth.repository';
+import { env } from '../../config/env';
 import {
   RegisterDto,
   LoginDto,
@@ -13,7 +14,7 @@ import { User } from '@prisma/client';
 
 export class AuthService {
   private readonly JWT_SECRET =
-    process.env['JWT_SECRET'] || 'fallback-secret-for-dev-only-change-me';
+    env.JWT_ACCESS_SECRET || 'fallback-secret-for-dev-only-change-me';
   private readonly JWT_EXPIRES_IN = '1d';
   private readonly OTP_EXPIRY_MINUTES = 10;
   private readonly MAX_OTP_ATTEMPTS = 5;
@@ -23,7 +24,7 @@ export class AuthService {
   }
 
   private generateToken(user: User): string {
-    return jwt.sign({ id: user.id, email: user.email, roleId: user.roleId }, this.JWT_SECRET, {
+    return jwt.sign({ id: user.id, email: user.email, role: (user as any).role?.name }, this.JWT_SECRET, {
       expiresIn: this.JWT_EXPIRES_IN,
     });
   }
@@ -113,7 +114,7 @@ export class AuthService {
     return {
       requireOtp: false,
       token,
-      user: { id: user.id, email: user.email, name: user.name, role: user.roleId },
+      user: { id: user.id, email: user.email, name: user.name, role: (user as any).role?.name },
     };
   }
 
